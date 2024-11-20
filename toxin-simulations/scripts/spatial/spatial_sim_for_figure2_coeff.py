@@ -95,7 +95,7 @@ def make_RPS_cobra_models_biomass_cost(growth_rate = 1., toxin_cost = 0.02, resi
 # set up treatment parameters
 growth_rates = [0.125, 0.25, 0.5, 0.75, 1]
 production_costs = [0.01]
-toxin_coefficients = [1, 5, 15, 50, 75, 100]
+toxin_coefficients = [1, 5, 15, 20, 30, 40, 50, 75, 100]
 resistance_costs = [0]
 metabolite_diffs = [5e-6]
 toxin_diffs = [5e-7]

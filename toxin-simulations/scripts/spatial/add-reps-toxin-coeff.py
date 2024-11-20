@@ -95,8 +95,8 @@ def make_RPS_cobra_models_biomass_cost(growth_rate = 1., toxin_cost = 0.02, resi
 # set up treatment parameters
 growth_rates = [0.125, 0.25, 0.5, 0.75, 1]
 production_costs = [0.01]
-toxin_coefficients = [15]
-resistance_costs = [0.0]
+toxin_coefficients = [20, 30, 40]
+resistance_costs = [0]
 metabolite_diffs = [5e-6]
 toxin_diffs = [5e-7]
 add_signal_parameters = ["bounded_linear"]
@@ -104,13 +104,12 @@ replicates = [1,2,5]
 space_width_starts = [0.01]
 cell_density_factor = 2
 grid_dim = 50
-densities = [1,2,3,4,5,6,7,8,9,10]
 
 # put treatments into a dataframe to iterate through
 parameter_dict = {'growth_rate': growth_rates, 'production_cost': production_costs, 
                   'toxin_coefficient': toxin_coefficients, 'resistance_cost': resistance_costs,
                   'metabolite_diff': metabolite_diffs, 'toxin_diff': toxin_diffs, 'add_signal_parameter': add_signal_parameters,
-                  'replicate': replicates, 'space_widths': space_width_starts, 'densities': densities}
+                  'replicate': replicates, 'space_widths': space_width_starts}
 
 expanded_grid = pd.DataFrame(itertools.product(*parameter_dict.values()),columns=parameter_dict.keys())
 
@@ -123,8 +122,8 @@ except:
 
 # initialize data frames to store location and final biomass data
 total_biomass_data = pd.DataFrame()
-starting_locations = pd.DataFrame()
 metabolite_data = pd.DataFrame()
+starting_locations = pd.DataFrame()
 
 # run spatial simulations, storing location and final biomass data before saving as csv after all loops
 for i in expanded_grid.index.values:
@@ -139,8 +138,6 @@ for i in expanded_grid.index.values:
     space_width = expanded_grid.at[i, 'space_widths']
     initial_biomass = 1.e-10 * cell_density_factor
     grid_size = [grid_dim, grid_dim]
-    density = expanded_grid.at[i, 'densities']
-    total_locs = density * 10
     base_hours = 1 
 
     # iterate through these to figure out which to use, and the spatial seed
@@ -162,11 +159,11 @@ for i in expanded_grid.index.values:
                                                                         resistance_cost = resistance_cost,
                                                                         toxin_prod = toxin_coefficient)
 
-     # HERE IS WHERE THE NUMBER OF FOUNDERS IS SET
-    locs = pick_unique_locations(grid_size[0], grid_size[1], total_locs, 3)
-    producer_locs = locs[0:density]
-    resistant_locs = locs[density:density+density]
-    susceptible_locs = locs[density+density:]
+    # HERE IS WHERE THE NUMBER OF FOUNDERS IS SET
+    locs = pick_unique_locations(grid_size[0], grid_size[1], grid_dim, 3)
+    producer_locs = locs[0:5]
+    resistant_locs = locs[5:10]
+    susceptible_locs = locs[10:]
 
     producer_models = []
     for l in range(0, len(producer_locs)):
@@ -256,18 +253,16 @@ for i in expanded_grid.index.values:
         print(sim.run_output)
 
     biomass_total = sim.total_biomass
-    biomass_total = pd.melt(biomass_total, id_vars = ["cycle"])
     biomass_total["growth_rate"] = growth_rate
     biomass_total["spatial_seed"] = spatial_seed
-    biomass_total["density"] = density
-
-    total_biomass_data = pd.concat([total_biomass_data, biomass_total])
+    biomass_total["toxin_coeff"] = toxin_coefficient
 
     metabolites = sim.media
     metabolites["growth_rate"] = growth_rate
     metabolites["spatial_seed"] = spatial_seed
-    metabolites["density"] = density
+    metabolites["toxin_coeff"] = toxin_coefficient
 
+    total_biomass_data = pd.concat([total_biomass_data, biomass_total])
     metabolite_data = pd.concat([metabolite_data, metabolites])
 
     spatial_data = pd.DataFrame(columns = ["strain", "x", "y"])
@@ -285,24 +280,28 @@ for i in expanded_grid.index.values:
                                                                 ignore_index = True).append(susceptible_data, ignore_index = True)
     spatial_data["growth_rate"] = growth_rate
     spatial_data["spatial_seed"] = spatial_seed
-    spatial_data["density"] = density
+    spatial_data["toxin_coeff"] = toxin_coefficient
 
     starting_locations = pd.concat([starting_locations, spatial_data])
 
     print(i + 1, "of", max(expanded_grid.index.values) + 1)
 
-total_biomass_data.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/total_biomass_figure2_density.csv")
-starting_locations.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/starting_locations_figure2_density.csv")
-metabolite_data.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/metabolites_figure2_density.csv")
+total_biomass_data.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/total_biomass_figure2_coeff.csv")
+metabolite_data.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/metabolites_figure2_coeff.csv")
+starting_locations.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/starting_locations_figure2_coeff.csv")
 
 import glob
 for f in glob.glob("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/totalbiomasslog*"):
     os.remove(f)
 
-import glob
 for f in glob.glob("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/*.cmd"):
     os.remove(f)
 
-import glob
 for f in glob.glob("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/*.txt"):
+    os.remove(f)
+
+for f in glob.glob("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/media*"):
+    os.remove(f)
+
+for f in glob.glob("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/biomasslog*"):
     os.remove(f)

@@ -104,7 +104,7 @@ replicates = [1,2,5]
 space_width_starts = [0.01]
 cell_density_factor = 2
 grid_dim = 50
-ratio = [0.1, 0.2, 0.3, 0.4]
+ratio = [0.1, 0.2, 0.3, 0.4, 0.15, 0.25, 0.35]
 
 # put treatments into a dataframe to iterate through
 parameter_dict = {'growth_rate': growth_rates, 'production_cost': production_costs, 

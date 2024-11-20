@@ -32,7 +32,7 @@ find_integer_points_in_neighborhood <- function(deldir_obj, point) {
 # Function to get stationary timepoints
 get_stationary_timepoint <- function(file, variable_changed){
   output <- read_csv(file) %>%
-    dplyr::select(-c(`...1`)) %>%
+    #dplyr::select(-c(`...1`)) %>%
     mutate(biomass = dplyr::select(., matches(c("susceptible","resistant","producer"))) %>% rowSums(na.rm = TRUE)) %>%
     group_by(spatial_seed, growth_rate, {{variable_changed}}) %>%
     filter(biomass == max(biomass)) %>% slice_head() %>% ungroup() %>% 
@@ -43,7 +43,8 @@ get_stationary_timepoint <- function(file, variable_changed){
 # Function to get colony biomass
 get_colony_biomass <- function(file, variable_changed){
   output <- read_csv(file) %>%
-    dplyr::select(-c(`...1`)) %>% pivot_longer(cols = matches(c("susceptible","resistant","producer"))) %>%
+    #dplyr::select(-c(`...1`)) %>% 
+    pivot_longer(cols = matches(c("susceptible","resistant","producer"))) %>%
     mutate(species = case_when(grepl("susceptible", name) == TRUE ~ "susceptible",
                                grepl("resistant", name) == TRUE ~ "resistant",
                                grepl("producer", name) == TRUE ~ "producer",
@@ -212,7 +213,8 @@ get_producer_to_all <- function(locations, metric){
 # Function to get locations for a set of simulations
 get_colony_locations <- function(file){
   output <- read_csv(file) %>%
-    dplyr::select(-c(`...1`)) %>% group_by(strain, growth_rate, spatial_seed) %>%
+    #dplyr::select(-c(`...1`)) %>% 
+    group_by(strain, growth_rate, spatial_seed) %>%
     mutate(colony_number = 1:n()) %>% ungroup()
   return(output)
 }

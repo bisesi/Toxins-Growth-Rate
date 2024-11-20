@@ -98,10 +98,10 @@ production_costs = [0.01]
 toxin_coefficients = [15]
 resistance_costs = [0]
 metabolite_diffs = [5e-6]
-toxin_diffs = [5e-7]
+toxin_diffs = [2.5e-7, 2.5e-06, 1.25e-05, 2.5e-05, 3.75e-05]
 add_signal_parameters = ["bounded_linear"]
 replicates = [1,2,5]
-space_width_starts = [0.008, 0.01, 0.02]
+space_width_starts = [0.01]
 cell_density_factor = 2
 grid_dim = 50
 
@@ -122,8 +122,8 @@ except:
 
 # initialize data frames to store location and final biomass data
 total_biomass_data = pd.DataFrame()
-starting_locations = pd.DataFrame()
 metabolite_data = pd.DataFrame()
+starting_locations = pd.DataFrame()
 
 # run spatial simulations, storing location and final biomass data before saving as csv after all loops
 for i in expanded_grid.index.values:
@@ -255,15 +255,14 @@ for i in expanded_grid.index.values:
     biomass_total = sim.total_biomass
     biomass_total["growth_rate"] = growth_rate
     biomass_total["spatial_seed"] = spatial_seed
-    biomass_total["width"] = space_width
-
-    total_biomass_data = pd.concat([total_biomass_data, biomass_total])
+    biomass_total["toxin_diff"] = toxin_diff
 
     metabolites = sim.media
     metabolites["growth_rate"] = growth_rate
     metabolites["spatial_seed"] = spatial_seed
-    metabolites["width"] = space_width
+    metabolites["toxin_diff"] = toxin_diff
 
+    total_biomass_data = pd.concat([total_biomass_data, biomass_total])
     metabolite_data = pd.concat([metabolite_data, metabolites])
 
     spatial_data = pd.DataFrame(columns = ["strain", "x", "y"])
@@ -281,28 +280,28 @@ for i in expanded_grid.index.values:
                                                                 ignore_index = True).append(susceptible_data, ignore_index = True)
     spatial_data["growth_rate"] = growth_rate
     spatial_data["spatial_seed"] = spatial_seed
-    spatial_data["width"] = space_width
+    spatial_data["toxin_diff"] = toxin_diff
 
     starting_locations = pd.concat([starting_locations, spatial_data])
 
     print(i + 1, "of", max(expanded_grid.index.values) + 1)
 
-total_biomass_data.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/total_biomass_figure2_volume.csv")
-starting_locations.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/starting_locations_figure2_volume.csv")
-metabolite_data.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/metabolites_figure2_volume.csv")
+total_biomass_data.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/total_biomass_figure2_diff.csv")
+metabolite_data.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/metabolites_figure2_diff.csv")
+starting_locations.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/starting_locations_figure2_diff.csv")
 
 import glob
 for f in glob.glob("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/totalbiomasslog*"):
-    os.remove(f)
-
-for f in glob.glob("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/biomasslog*"):
-    os.remove(f)
-
-for f in glob.glob("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/medialog*"):
     os.remove(f)
 
 for f in glob.glob("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/*.cmd"):
     os.remove(f)
 
 for f in glob.glob("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/*.txt"):
+    os.remove(f)
+
+for f in glob.glob("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/media*"):
+    os.remove(f)
+
+for f in glob.glob("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/biomasslog*"):
     os.remove(f)

@@ -27,8 +27,7 @@ partA_spatial <- locations %>%
         strip.background = element_blank(), axis.ticks = element_blank(), strip.text.y = element_blank())
 
 # part B - toxin localization
-media <- read_csv(here::here("toxin-simulations", "simulations_spatial", "figure1", "metabolites_figure1.csv")) %>%
-  dplyr::select(-c(`...1`))
+media <- read_csv(here::here("toxin-simulations", "simulations_spatial", "figure1", "metabolites_figure1.csv"))
 
 metabolite_variation <- media %>% group_by(metabolite, growth_rate, spatial_seed, cycle) %>%
   filter(cycle > 1) %>%
@@ -38,17 +37,16 @@ metabolite_variation <- media %>% group_by(metabolite, growth_rate, spatial_seed
 
 partB <- metabolite_variation %>%
   group_by(growth_rate, metabolite) %>%
-  summarize(mean_cv = mean(cv), se_cv = sd(cv) / sqrt(3)) %>%
+  summarize(mean_cv = mean(cv), se_cv = sd(cv) / sqrt(15)) %>%
   mutate(metabolite = factor(metabolite, levels = c("colony size", "carbon", "toxin"))) %>%
   filter(metabolite == "toxin") %>%
   ggplot(aes(x = growth_rate, y = mean_cv)) +
-  geom_point(size = 4) + 
+  geom_point(size = 3) + 
   theme_bw(base_size = 16) + 
   ylab("coefficient of variation") +
   geom_linerange(aes(ymin = mean_cv - se_cv, ymax = se_cv + mean_cv)) +
   xlab("growth rate") +
   theme(legend.position = "none", strip.background = element_blank()) + facet_wrap(~metabolite, scales = "free")
-
 
 # part C - localization metric with producer
 biomass <- get_colony_biomass(here::here("toxin-simulations", "simulations_spatial", "figure1", "total_biomass_figure1.csv"))
@@ -67,13 +65,14 @@ distances_vs_biomass <- biomass %>% mutate(label = paste(species, colony_number,
 fast_slope <- coef(lm(biomass ~ distance, data = distances_vs_biomass %>% filter(growth_rate == 1 & spatial_seed == 5) %>% mutate(biomass = biomass * 1e7)))[2]
 slow_slope <- coef(lm(biomass ~ distance, data = distances_vs_biomass %>% filter(growth_rate == 0.125 & spatial_seed == 5) %>% mutate(biomass = biomass * 1e7)))[2]
 
+#significance of fast slope = 0.00254, slow slope = 0.45
 partC <- distances_vs_biomass %>% filter(growth_rate %in% c(0.125, 1) & spatial_seed == 5) %>% 
   mutate(type = "susceptibles") %>%
   ggplot(aes(x = distance, y = biomass * 1e7, color = as.factor(growth_rate))) +
   geom_point() + theme_bw(base_size = 16) + geom_smooth(method = "lm", se = FALSE) + labs(color = "growth rate") +
-  scale_color_manual(values = c("darkgrey", "black")) +
+  scale_color_manual(values = c("#E69F00", "black")) +
   annotate(geom = "text", x = 35, y = 275, color = "black", size = 5, label = paste("slope:", round(fast_slope, 2))) +
-  annotate(geom = "text", x = 43, y = 160, color = "darkgrey", size = 5, label = paste("slope:", round(slow_slope, 2))) +
+  annotate(geom = "text", x = 43, y = 158, color = "#E69F00", size = 5, label = paste("slope:", round(slow_slope, 2))) +
   ylab("final scaled biomass") + xlab("mean distance to producer") + theme(legend.position = "none", strip.background = element_blank()) + facet_wrap(~type)
 
 legend <- get_plot_component(distances_vs_biomass %>% filter(growth_rate %in% c(0.125, 1) & spatial_seed == 5) %>% 
@@ -81,9 +80,9 @@ legend <- get_plot_component(distances_vs_biomass %>% filter(growth_rate %in% c(
                                mutate(growth_rate = ifelse(growth_rate == 0.125, "slow", "fast")) %>%
                                ggplot(aes(x = distance, y = biomass * 1e5, color = as.factor(growth_rate))) +
                                geom_point(size = 4) + theme_bw(base_size = 16) + 
-                               scale_color_manual(values = c("black", "darkgrey")) + labs(color = "")+
+                               scale_color_manual(values = c("black", "#E69F00")) + labs(color = "")+
                                ylab("final scaled biomass") + xlab("mean distance to producer") + theme(legend.position = "bottom", strip.background = element_blank()) + facet_wrap(~type),
-                             'guide-box-bottom', return_all = TRUE)
+                               'guide-box-bottom', return_all = TRUE)
 
 # part D - penalty of proximity
 slopes <- distances_vs_biomass %>%
@@ -98,7 +97,7 @@ slopes <- distances_vs_biomass %>%
   filter(term != "(Intercept)") %>%
   ungroup() 
 
-partD <- slopes %>% group_by(growth_rate) %>% summarize(mean = mean(estimate), se = sd(estimate) / sqrt(3)) %>%
+partD <- slopes %>% group_by(growth_rate) %>% summarize(mean = mean(estimate), se = sd(estimate) / sqrt(15)) %>%
   mutate(type = "susceptibles") %>%
   ggplot(aes(x = growth_rate, y = mean)) +
   geom_point(size = 4) + theme_bw(base_size = 16) + geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
@@ -130,8 +129,8 @@ spatial <- biomass %>% inner_join(., stationary, by = c("cycle", "growth_rate", 
   group_by(growth_rate) %>%
   summarize(mean_fitness = mean(relative_fitness),
             mean_pop = mean(final_percent),
-            se_fitness = sd(relative_fitness) / sqrt(3),
-            se_pop = sd(final_percent) / sqrt(3)) %>% mutate(environment = "spatial")
+            se_fitness = sd(relative_fitness) / sqrt(15),
+            se_pop = sd(final_percent) / sqrt(15)) %>% mutate(environment = "spatial")
 
 partE <- rbind(spatial, liquid) %>%
   pivot_longer(cols = c(mean_fitness:se_pop), names_to = "name") %>%
@@ -139,6 +138,7 @@ partE <- rbind(spatial, liquid) %>%
   mutate(intercept = ifelse(fitness_type == "total pop", 0.1, 0.5)) %>% 
   mutate(stat = ifelse(name == "se_pop" | name == "se_fitness", "se", "mean")) %>% dplyr::select(-c(name)) %>%
   pivot_wider(names_from = stat, values_from = value) %>%
+  mutate(fitness_type = ifelse(fitness_type == "total pop", "vs all", fitness_type)) %>%
   ggplot(aes(x = growth_rate, y = mean, shape = environment)) +
   xlab("growth rate") +
   ylab("producer fraction") +

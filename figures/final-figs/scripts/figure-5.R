@@ -81,6 +81,15 @@ toxins <- c("RiPP-like", "NRPS", "NRPS-like", "butyrolactone", "cyanobactin",
 partB <- binomial_models_strep %>%
   filter(p_adjusted < 0.05) %>%
   mutate(toxin = ifelse(type %in% toxins, TRUE, FALSE)) %>%
+  mutate(type = case_when(type == "T1PKS" ~ "type I PKS",
+                          type == "T3PKS" ~ "type III PKS",
+                          type == "hserlactone" ~ "homoserine lactone",
+                          type == "LAP" ~ "linear azol(in)e",
+                          type == "hglE-KS" ~ "heterocyst glycolipid synthase-like PKS",
+                          type == "NAPAA" ~ "non-alpha poly-amino acids",
+                          type == "T2PKS" ~ "type II PKS",
+                          type == "amglyccycl" ~ "aminoglycoside",
+                          TRUE ~ type)) %>%
   ggplot(aes(x = fct_reorder(type, beta, .desc = TRUE), y = beta, color = toxin)) +
   geom_point(size = 4) +
   geom_linerange(aes(ymax = upperci, ymin = lowerci)) +
