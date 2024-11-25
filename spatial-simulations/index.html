@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Running simulations - COMETS Toxin Implementation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Running simulations";
+        var mkdocs_page_input_path = "spatial-simulations.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> COMETS Toxin Implementation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">COMETS Overview</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../comets-capabilities/">COMETS Capabilities</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../comets-installation/">COMETS Installation</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Toxin and Signaling User Guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../building-models/">Building models</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Running simulations</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#well-mixed-environments">Well-mixed environments</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#spatially-structured-environments">Spatially-structured environments</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#setting-up-the-initial-location-of-colonies">Setting up the initial location of colonies</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#tracking-the-biomass-of-individual-colonies">Tracking the biomass of individual colonies</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#running-the-simulations">Running the simulations</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#troubleshooting-appropriate-simulation-durations">Troubleshooting appropriate simulation durations</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">About</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../license/">License</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">COMETS Toxin Implementation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Toxin and Signaling User Guide</li>
+      <li class="breadcrumb-item active">Running simulations</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="running-simulations">Running simulations</h1>
+<p>Once metabolic models with signalling compound production and response have been built, it's time to run some simulations.</p>
+<h2 id="well-mixed-environments">Well-mixed environments</h2>
+<p>Toxin production can be simulated in a well-mixed environment using our three metabolite models: susceptibles, producers, and resistant cheaters. </p>
+<pre><code>S.initial_pop = [0,0,1e-10] # initialize populations with the desired biomass, no x and y coordinates
+R.initial_pop = [0,0,1e-10] # resistant
+P.initial_pop = [0,0,1e-10] # producer
+
+l = cometspy.layout([P, R, S]) # set up the COMETS layout
+l.set_specific_metabolite("carbon_e", 4e-7) # add the carbon source into the layout
+
+p = cometspy.params() # specify the simulation parameters
+p.set_param("defaultVmax", 1.) # set Vmax
+p.set_param("defaultKm", 0.000001) # set Km
+p.set_param('maxCycles', 300) # set the total number of simulation hours
+p.set_param('timeStep', 0.1) # set the timestep of each simulation
+p.set_param('spaceWidth', 0.02) # set the size of the 2D environment, i.e. 2cm x 2cm
+p.set_param('writeMediaLog', True) # if True, COMETS will provide the log of metabolite concentrations over time
+p.set_param('MediaLogRate', 1) # timestep at which to record changes in metabolite concentrations
+p.set_param('writeFluxLog', True) # if True, COMETS will provide the log of metabolic fluxes for each model over time
+p.set_param('FluxLogRate', 1) # timestep at which to record changes in model flux
+p.set_param("totalBiomassLogRate", 1) # timestep at which to record changes in biomass
+</code></pre>
+<p>Once the starting population and simulation parameters have been set to the user's desires, simulations can be run.</p>
+<pre><code>sim = cometspy.comets(l, p)
+sim.run()
+</code></pre>
+<p>Users can view the results of liquid simulations by examining the dataframes <code>sim.total_biomass</code> and <code>sim.media</code>. Note that the maximum number of cycles provided here may not be sufficient for the simulation to reach stationary phase depending on the growth rate provided and other parameters. Users should look carefully at the results of their simulations to ensure that they have gathered the information intended. </p>
+<p>In well-mixed simulations, five parameters are generally most consequential for the outcome of competition: the growth rate cost of toxin production, the toxin production rate, the total amount of carbon provided in the environment, the total size and relative genotype frequencies of the initial population, and the parameter <code>spaceWidth</code>. The <code>spaceWidth</code> parameter influences the concentration of the toxin (mmol / <code>spaceWidth</code>^3) and is therefore a critical value when modeling signalling compounds. Smaller <code>spaceWidth</code> values will result in higher effective concentrations of toxins or other signalling molecules. </p>
+<h2 id="spatially-structured-environments">Spatially-structured environments</h2>
+<p>Signalling compound production can also be simulated in 2D space using the same three metabolite models: susceptibles, producers, and resistant cheaters.</p>
+<h3 id="setting-up-the-initial-location-of-colonies">Setting up the initial location of colonies</h3>
+<p>One of the first and most important decisions that arises when running spatial simulations is how to initialize the starting locations of colonies. We detail the strategy taken in our paper, but note that COMETS has additional capabilities to set locations deterministically or randomly. </p>
+<p>To randomly generate starting locations (x,y coordinates) for colonies, users can define the following function:</p>
+<pre><code>def pick_unique_locations(width, height, n, edge_space = 0):
+    locs = []
+    while len(locs) &lt; n:
+        loc = (random.randrange(edge_space, width - edge_space),
+            random.randrange(edge_space, height - edge_space))
+        if loc not in locs:
+            locs.append(loc)
+    return(locs)
+</code></pre>
+<p>The use of the <code>random</code> package from <code>Python</code> also necessitates that users set a <code>spatial_seed</code> for reproducibility:</p>
+<pre><code>random.seed(spatial_seed) 
+</code></pre>
+<p>This will ensure that the <code>pick_unique_locations</code> function uses the same initial starting locations each time the same <code>spatial_seed</code> is set. </p>
+<p>Once the function is defined and the <code>spatial_seed</code> for the simulation has been assigned, unique starting locations for any desired number of colonies can be generated. The relative ratios of the three genotypes will also be determined by the number of starting locations assigned to each genotype. </p>
+<pre><code>grid_size = [50,50] # size of the 2D grid from which locations should be picked
+number_of_colonies = 30 # number of initial colonies for which x,y coordinates are needed
+edge_space = 3 # distance from the grid border, beyond which coordinates should not be picked
+locs = pick_unique_locations(grid_size[0], grid_size[1], number_of_colonies, edge_space)
+
+producer_locs = locs[0:5] # the first four coordinates are assigned to be producers
+resistant_locs = locs[5:10] # the next four coordinates are assigned to be resistants
+susceptible_locs = locs[10:] # the remaining coordinates are assigned to be susceptibles
+
+initial_biomass = 1.e-10 # biomass for each colony
+S.initial_pop = [[loc[0], loc[1], initial_biomass] for loc in susceptible_locs] # assign the susceptible model to all susceptible colony locations with the appropriate starting biomass
+P.initial_pop = [[loc[0], loc[1], initial_biomass] for loc in producer_locs]
+R.initial_pop = [[loc[0], loc[1], initial_biomass] for loc in resistant_locs]
+
+l = c.layout([P, R, S]) # set up the initial COMETS layout
+</code></pre>
+<p>It is generally desirable to save the starting locations of colonies in order to do any spatially-explicity analyses later. There are many approaches to accomplish this. For example, the strain genotype and x,y coordinates can be assigned to a dataframe and exported as a csv. Users should also consider saving the <code>spatial_seed</code> value set for the generation of starting locations in order to make their analyses reproducible. </p>
+<pre><code>spatial_data = pd.DataFrame(columns = ["strain", "x", "y"]) # initialize dataframe
+producer_data = pd.DataFrame({"strain" : "producer",
+                         "x" : [x[0] for x in producer_locs],
+                         "y" : [x[1] for x in producer_locs]})
+resistant_data = pd.DataFrame({"strain" : "resistant",
+                         "x" : [x[0] for x in resistant_locs],
+                         "y" : [x[1] for x in resistant_locs]})
+susceptible_data = pd.DataFrame({"strain" : "susceptible",
+                         "x" : [x[0] for x in susceptible_locs],
+                         "y" : [x[1] for x in susceptible_locs]})
+spatial_data = spatial_data.append(producer_data, 
+                               ignore_index = True).append(resistant_data, 
+                                                           ignore_index = True).append(susceptible_data, ignore_index = True) # concatenate data frame
+spatial_data["spatial_seed"] = spatial_seed # save spatial seed for locations
+spatial_data.to_csv("file_name.csv") # save as csv
+</code></pre>
+<h3 id="tracking-the-biomass-of-individual-colonies">Tracking the biomass of individual colonies</h3>
+<p>One common challenge of spatially-structured simulations is that the default settings do not accommodate tracking the biomass of individual colonies. Instead, simulations can track the total biomass of each model type (susceptible, producer, resistant cheater) and the biomass of each model type at each x,y coordinate. Because biomass diffuses (albeit at a slow rate) many x,y locations in a grid will have a non-zero biomass value by the end of a simulation, and while the type of model that that biomass corresponds to can be discerned, which initial colony the biomass should be counted toward is not possible to ascertain in most cases. </p>
+<p>There are a few approaches to circumvent this limitation. The most straightforward involves assigning a unique metabolic model to each location, so that the total biomass file reflects the growth of every individual colony. This can be accomplished by making multiple individual COMETS models for all genotypes of interest.</p>
+<pre><code>grid_size = [50,50]
+number_of_colonies = 30 
+edge_space = 3 
+locs = pick_unique_locations(grid_size[0], grid_size[1], number_of_colonies, edge_space)
+producer_locs = locs[0:5]
+resistant_locs = locs[5:10]
+initial_biomass = 1e-10 # total initial biomass for each colony
+
+producer_models = []
+for l in range(0, len(producer_locs)):
+    P = c.model(producer) # take the cobra model and convert it into a comets model
+
+    P.obj_style = "MAX_OBJECTIVE_MIN_TOTAL" # set the fba objective
+
+    loc = producer_locs[l] # get the starting location
+    P.initial_pop = [loc[0], loc[1], initial_biomass] # assign starting location and biomass
+    producer_models.append(P) # add to list of other producer models with different locations
+
+resistant_models = []
+for k in range(0, len(resistant_locs)):
+    R = c.model(resistant)
+
+    R.obj_style = "MAX_OBJECTIVE_MIN_TOTAL"
+
+    # fix COMETS thinking biomass reactions with only reactants are exchanges
+    R.reactions.loc[R.reactions.REACTION_NAMES == "Biomass", "EXCH"] = False
+    index = R.reactions.loc[R.reactions.REACTION_NAMES == "Biomass", "EXCH_IND"].values[0]
+    R.reactions.loc[R.reactions.REACTION_NAMES == "Biomass", "EXCH_IND"] = 0
+    R.reactions.loc[R.reactions.EXCH_IND &gt; index, "EXCH_IND"] -= 1
+
+    loc = resistant_locs[k]
+    R.initial_pop = [loc[0], loc[1], initial_biomass]
+    resistant_models.append(R)
+</code></pre>
+<p>This will generate a list of producer models with the associated x,y coordinate and initial biomass for each colony. For success, any specific changes that are required for converting the <code>cobra</code> models into <code>cometspy</code> models should be implemented <strong>within</strong> the assignment loops, as seen above. These models can then be concatenated into a longer list prior to the start of simulations in order to create the desired layout. </p>
+<pre><code> l = c.layout(producer_models + resistant_models)
+</code></pre>
+<p>When simulations are initialized in this way, the total biomass file will contain each colony as a column (i.e. producer1, producer2), with each row as the biomass of that colony at a given timestep. This type of analysis makes it especially important that users save the starting locations of colonies. </p>
+<h3 id="running-the-simulations">Running the simulations</h3>
+<p>Once users have initialized the starting locations of colonies, it's time to run simulations. The process is similar to that for well-mixed environments, with the addition of a handful of important variables.</p>
+<pre><code>space_width = 0.01 # simulation environment size i.e. 1 cm x 1 cmm
+max_cycles = 30 # initial guess for the time to stationary, should be adjusted as needed
+dt = 0.25 * ((space_width)**2) / metabolite_diff # dt should be determined based on diffusion rates and environment size
+metabolite_diff = 5e-6 # default rate of metabolite (carbon) diffusion
+toxin_diff = 5e-7 # default rate of toxin diffusion
+grid_size = [50,50] # coordinate size of the spatial grid to simulate
+
+p = c.params() # set up simulation parameters
+p.set_param("defaultVmax", 1.)
+p.set_param("defaultKm", 0.000001) 
+p.set_param('maxCycles', max_cycles)
+p.set_param('timeStep', dt) # this needs to be calculated relative to diffusion and spatial simulation size
+p.set_param('spaceWidth', space_width) # this helps determine timeStep
+p.set_param('writeMediaLog', True)
+p.set_param('writeBiomassLog', False) # if True, provides a log of biomass at each x,y location in the environment grid
+p.set_param('minSpaceBiomass', 1.e-15)
+p.set_param('defaultDiffConst', metabolite_diff) # rate of metabolite diffusion
+p.set_param('flowDiffRate', 3.e-9)
+p.set_param('writeFluxLog', False) 
+p.set_param("totalBiomassLogRate", 1)
+p.set_param("MediaLogRate", 1)
+p.set_param("numDiffPerStep", 1) # rate of diffusion per time step
+
+l = c.layout(producer_models + resistant_models) # make the layout with producer and resistant models
+l.grid = grid_size # set up the grid based on the appropriate size
+l.set_specific_metabolite("carbon_e", 4.e-7) # initialize the starting amount of carbon at each x,y coordinate
+l.media.loc[l.media.metabolite == "toxin_e", "diff_c"] = toxin_diff # add the rate of toxin diffusion
+
+# run the simulation
+sim = c.comets(l, p)
+sim.run(delete_files = False)
+</code></pre>
+<p>Users can examine the outputs of <code>sim.total_biomass</code> and <code>sim.media</code> to evaluate their simulations. It is almost certain that individual adjustments will need to be made to ensure that colonies reach stationary or that the rate of diffusion is appropriate depending on the other desired parameters like growth rate, etc. </p>
+<h3 id="troubleshooting-appropriate-simulation-durations">Troubleshooting appropriate simulation durations</h3>
+<p>For successful spatial simulations, users should be attentive to the timestep, rate of diffusion, and total simulation duration. </p>
+<p>To test that the timestep <code>dt</code> (<code>p.set_param('timeStep', dt)</code>) is appropriate, users should consult the <code>sim.run_ouput</code> following an initial short simulation. <code>run_ouput</code> will provide information about the diffusion constants, in particular raising a warning if the diffusion constants are unstable. The file will also suggest the appropriate timestep to fix the problem. By calculating <code>dt</code> with the <code>spaceWidth</code> and <code>metabolite_diff</code> variables, users should be able to largely offset this issue. However, it is worth verifying before running computationally expensive simulations with a higher number of <code>maxCycles</code> in order to make sure that estimations are as robust as possible. </p>
+<p>Additionally, the appropriate number of <code>maxCycles</code> required to reach the cessation of growth (i.e. stationary phase) is likely to be highly dependent on simulation-specific parameters like diffusion constants and growth rate. This should be adjusted as needed and may require several rounds of running simulations and checking the final timesteps to see if biomass continues to change. </p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../building-models/" class="btn btn-neutral float-left" title="Building models"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../license/" class="btn btn-neutral float-right" title="License">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../building-models/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../license/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

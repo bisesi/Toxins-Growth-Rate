@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>COMETS Installation - COMETS Toxin Implementation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "COMETS Installation";
+        var mkdocs_page_input_path = "comets-installation.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> COMETS Toxin Implementation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">COMETS Overview</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../comets-capabilities/">COMETS Capabilities</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">COMETS Installation</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#installation-of-comets-prerequisites">Installation of COMETS prerequisites</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#installation-of-the-comets-software">Installation of the COMETS software</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#installation-of-the-comets-python-toolbox">Installation of the COMETS Python Toolbox</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#version-issues">Version issues</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Toxin and Signaling User Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../building-models/">Building models</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../spatial-simulations/">Running simulations</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">About</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../license/">License</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">COMETS Toxin Implementation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">COMETS Overview</li>
+      <li class="breadcrumb-item active">COMETS Installation</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="getting-started-with-comets">Getting started with COMETS</h1>
+<h2 id="installation-of-comets-prerequisites">Installation of COMETS prerequisites</h2>
+<p>There are two software prerequisites for the successful usage of COMETS. </p>
+<p>First, Java must be <a href="https://www.java.com/en/download/manual.jsp">downloaded and installed</a>. The minimum version of required 64-bit Java is 1.8.</p>
+<p>Second, the Gurobi software should be <a href="https://www.gurobi.com/downloads/gurobi-software/">downloaded and installed</a>. The installation of Gurobi requires obtaining a license, which is <a href="https://www.gurobi.com/downloads/end-user-license-agreement-academic/">free for academics</a>. <strong>Follow the Gurobi instructions to activate your license <em>before</em> attempting to use COMETS.</strong> </p>
+<p>If COMETS is struggling to connect to Gurobi, users should begin the troubleshooting process by making sure the <code>GUROBI_HOME</code> environment variable is set. In Windows, this can be done in the Control Panel. In Linux, the file <code>.bashrc</code> can be edited to contain the line <code>export GUROBI_HOME=/usr/gurobi/gurobi904/linux64</code> where <code>gurobi904</code> is replaced with the name and number of the appropriate installed version. For MacOS, the line <code>export GUROBI_HOME=/Library/gurobi904/mac64</code> should be added to the <code>.zshrc</code> file, where <code>gurobi904</code> is replaced with the identifying information for the installed version.</p>
+<h2 id="installation-of-the-comets-software">Installation of the COMETS software</h2>
+<p>COMETS can be installed in two ways: using the COMETS installer or by unpacking the .tar.gz file. Use of the installer is recommended and is available <a href="https://www.runcomets.org/installation">here</a>. Users are asked to register, after which they can obtain the correct installer for their system. Installation for Windows, MacOS, and Linux systems are all available. The installer will guide users through a standard GUI installation procedure.</p>
+<p>Alternatively, users can use the <code>comets_x.x.x.tar.gz</code> file for custome installation, best on a Linux system. The file should be unpacked in the directory where COMETS will be installed in order to create the COMETS installation directory:</p>
+<pre><code>$tar -xzvf comets_x.x.x.tar.gz   ./
+</code></pre>
+<p>If a user is completing custom installation on a Unix system (Linux or MacOS), they will also need to specify the <code>COMETS_HOME</code> environmental variable so that it points to the COMETS installation folder. This is done by adding the following line to the<code>.bashrc</code> file located in the home folder:</p>
+<pre><code>export COMETS_HOME = &quot;/your/comets/installation/folder&quot; 
+</code></pre>
+<h2 id="installation-of-the-comets-python-toolbox">Installation of the COMETS <code>Python</code> Toolbox</h2>
+<p>While both <code>MATLAB</code> and <code>Python</code> toolboxes exist for COMETS, this tutorial uses <code>Python</code> to implement secondary metabolites.</p>
+<p>It is recommended that users install <code>Python</code> (version &gt;=3.6) using the <a href="https://www.anaconda.com/download">Anaconda distribution</a> or other method as preferred. Anaconda and related methods have the benefit of installing Jupyter Notebooks at the same time. </p>
+<p>The COMETS <code>Python</code> toolbox (<code>cometspy</code>) is available from the package manager <code>PyPI</code> using the <code>pip</code> command. If <code>Python</code> has been installed through Anaconda, <code>pip</code> will have also been installed. Otherwise, in Linux systems, the <code>pip</code> command is installed through available repositories (e.g. <code>sudo apt-get install python3-pipin</code> Debian-based distributions). Once <code>pip</code> has been installed, <code>cometspy</code> can be downloaded by running the terminal command:</p>
+<pre><code>pip install cometspy
+</code></pre>
+<h2 id="version-issues">Version issues</h2>
+<p>There are two important version issues to note when attempting to get started with COMETS and the COMETS Python Toolbox. </p>
+<ul>
+<li>Gurobi versions &gt;10 are no longer compatible with Java</li>
+<li><code>pandas</code> versions &gt;2 and &lt;1.5 are not compatible with the COMETS <code>Python</code> toolbox</li>
+</ul>
+<h2 id="dependencies">Dependencies</h2>
+<p>All simulations in this tutorial will rely on 4 <code>Python</code> packages:</p>
+<ul>
+<li><code>cobra</code>, especially <code>Metabolite</code>, <code>Reaction</code>, and <code>Model</code> </li>
+<li><code>random</code></li>
+<li><code>pandas</code></li>
+<li><code>cometspy</code></li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../comets-capabilities/" class="btn btn-neutral float-left" title="COMETS Capabilities"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../building-models/" class="btn btn-neutral float-right" title="Building models">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../comets-capabilities/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../building-models/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

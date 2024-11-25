@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Building models - COMETS Toxin Implementation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Building models";
+        var mkdocs_page_input_path = "building-models.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> COMETS Toxin Implementation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">COMETS Overview</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../comets-capabilities/">COMETS Capabilities</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../comets-installation/">COMETS Installation</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Toxin and Signaling User Guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Building models</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#making-toy-models-using-cobra">Making toy models using cobra</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#making-comets-models-from-cobra-models">Making COMETS models from cobra models</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#important-notes-on-toxins-and-signalling">Important notes on toxins and signalling</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../spatial-simulations/">Running simulations</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">About</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../license/">License</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">COMETS Toxin Implementation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Toxin and Signaling User Guide</li>
+      <li class="breadcrumb-item active">Building models</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="building-metabolic-models-with-secondary-metabolite-production-or-response">Building metabolic models with secondary metabolite production or response</h1>
+<p>The first step to running simulations with signalling compounds is building metabolic models that can accommodate the production of or response to these compounds. We will detail the model building process used in our paper, although this protocol can also be adapted to make changes to existing models rather than developing toy models. </p>
+<h2 id="making-toy-models-using-cobra">Making toy models using <code>cobra</code></h2>
+<p>The most straightforward way to generate toy metabolic models is to create a function that defines the desired models using a variety of functions and object types from <code>cobra</code>, in particular the <code>Metabolite</code>, <code>Reaction</code>, and <code>Model</code> classes.</p>
+<pre><code>def make_RPS_cobra_models_biomass_cost(growth_rate = 1., toxin_cost = 0.02, resistance_cost = 0.0, toxin_prod = 1.):
+    # create metabolites for carbon and toxin
+    carbon_e = Metabolite(id = "carbon_e",
+            compartment = "e")
+    carbon_c = Metabolite(id = "carbon_c",
+                compartment = "c")
+    toxin_c = Metabolite(id = "toxin_c", compartment = "c")
+    toxin_e = Metabolite(id = "toxin_e", compartment = "e")
+
+    # create the reactions - biomass, carbon exchange and transport, and toxin exchange and transport
+    #exchange reactions
+    EX_carbon_e = Reaction(id = "EX_carbon_e",
+                  lower_bound = -growth_rate, # growth rate
+                  upper_bound = 1000.)
+    EX_carbon_e.add_metabolites({carbon_e: -1})
+    EX_toxin_e = Reaction(id = "EX_toxin_e",
+                     lower_bound = -1000.,
+                     upper_bound = 1000.)
+    EX_toxin_e.add_metabolites({toxin_e: -1})
+
+    # transport reactions
+    carbon_transfer = Reaction(id = "carbon_transfer",
+                      lower_bound = 0.,
+                      upper_bound = 1000.)
+    carbon_transfer.add_metabolites({carbon_e: -1,
+                            carbon_c: 1})
+    toxin_transfer = Reaction(id = "toxin_transfer",
+                         lower_bound = -1000.,
+                         upper_bound = 0.)
+    toxin_transfer.add_metabolites({toxin_e: -1,
+                               toxin_c: 1})
+
+    # biomass reactions
+    Biomass = Reaction(id = "Biomass",
+              lower_bound = 0.,
+              upper_bound = 1000.)
+    Biomass.add_metabolites({carbon_c: -1.})
+    Biomass_producer = Reaction(id = "Biomass",
+              lower_bound = 0.,
+              upper_bound = 1000.)
+    Biomass_producer.add_metabolites({carbon_c: -(1. + toxin_cost + resistance_cost),
+                                 toxin_c: toxin_prod * (1. + toxin_cost + resistance_cost)})
+    Biomass_resistant = Reaction(id = "Biomass",
+              lower_bound = 0.,
+              upper_bound = 1000.)
+    Biomass_resistant.add_metabolites({carbon_c: -(1. + resistance_cost)})
+    # generate the 3 model types with the appropriate reactions and objectives
+    producer = Model("producer")
+    producer.add_reactions([EX_carbon_e, carbon_transfer, Biomass_producer,
+                    EX_toxin_e, toxin_transfer])
+    producer.objective = Biomass_producer
+
+    resistant = Model("resistant")
+    resistant.add_reactions([EX_carbon_e, carbon_transfer, Biomass_resistant])
+    resistant.objective = Biomass_resistant
+
+    susceptible = Model("susceptible")
+    susceptible.add_reactions([EX_carbon_e, carbon_transfer, Biomass,
+                    EX_toxin_e])
+    susceptible.objective = Biomass
+
+    return((producer, resistant, susceptible))
+</code></pre>
+<p>This function takes four arguments (growth rate, the cost of toxin production, the cost of toxin resistance, and the amount of toxin produced per gram of biomass produced) to create three model genotypes (susceptibles, producers, and resistant cheaters). Susceptible models have four metabolic reactions (carbon exchange, carbon transport, biomass production, and extracellular to intracellular toxin exchange), producers have five metabolic reactions (carbon exchange, carbon transport, biomass production, intracellular to extracellular toxin exchange, and toxin transport), and resistant cheaters have three metabolic reactions (carbon exchange, carbon transfer, and biomass production). </p>
+<p>When manipulating this function to generate toy models, particular attention should be paid to the construction of the biomass reactions, which will allow users to change the relative growth rates of each model (the default here is that they all have the same growth rate, aside from minimal penalities for the cost of toxin production or resistance) along with a variety of other assumptions. Here, toxin production is tied to producer biomass and carbon uptake:</p>
+<pre><code>Biomass_producer.add_metabolites({carbon_c: -(1. + toxin_cost + resistance_cost),
+                                     toxin_c: toxin_prod * (1. + toxin_cost + resistance_cost)})
+</code></pre>
+<p>This setup defines toxin production in such a way that toxins are only created during growth and that the costs associated with toxin production (<code>toxin_cost</code>) or resistance to toxin (<code>resistance_cost</code>) vary directly with growth rate. It also establishes that toxin production is directly proportional to carbon uptake, regardless of growth rate, although the amount of toxin created per unit of carbon can be changed (<code>toxin_prod</code>). If desired, these constraints can be altered to fit the appropriate biological details of the signalling compounds being modeled. </p>
+<p>Notably, this function also penalizes the biomass production of resistant cheaters to impose a cost of toxin resistance (<code>resistance_cost</code>), seen here:</p>
+<pre><code>Biomass_resistant.add_metabolites({carbon_c: -(1. + resistance_cost)})
+</code></pre>
+<p>Many of these modeling assumptions can be adjusted by changing the biomass reactions for any of the three models, or by altering the four arguments in the function call:</p>
+<pre><code>growth_rate = 0.75 # growth rate for all three species
+toxin_cost = 0.02 # 2% reduction in growth rate as a result of producing energetically expensive toxin
+resistance_cost = 0 # no reduction in growth rate as a result of being resistant to toxin
+toxin_prod = 15 # 15 mmol of toxin produced per gram of biomass
+
+producer, resistant, susceptible = make_RPS_cobra_models_biomass_cost(growth_rate = growth_rate, toxin_cost = toxin_cost, resistance_cost = resistance_ost, toxin_prod = toxin_prod)
+</code></pre>
+<h2 id="making-comets-models-from-cobra-models">Making COMETS models from <code>cobra</code> models</h2>
+<p>Once <code>cobra</code> toy models have been constructed, they need to be converted into models that are recognizable by <code>cometspy</code>. Exactly how this is done will vary slightly for each type of model and its associated biological details.</p>
+<pre><code>P = c.model(producer) # create the comets model from the cobra producer
+R = c.model(resistant)
+S = c.model(susceptible)
+
+P.obj_style = "MAX_OBJECTIVE_MIN_TOTAL" # set flux style, FBA (pFBA is also possible)
+R.obj_style = "MAX_OBJECTIVE_MIN_TOTAL"
+S.obj_style = "MAX_OBJECTIVE_MIN_TOTAL"
+</code></pre>
+<p>During the initial conversion, COMETS will erroneously assume that the biomass equation is an exchange for the susceptible and resistant models, because the reactions are unbalanced (unlike the producer, for which carbon uptake is balanced by toxin production). That will need to be fixed first. </p>
+<pre><code># tell COMETS that the biomass reaction is not an exchange
+R.reactions.loc[R.reactions.REACTION_NAMES == "Biomass", "EXCH"] = False # set false
+index = R.reactions.loc[R.reactions.REACTION_NAMES == "Biomass", "EXCH_IND"].values[0]
+R.reactions.loc[R.reactions.REACTION_NAMES == "Biomass", "EXCH_IND"] = 0
+R.reactions.loc[R.reactions.EXCH_IND &gt; index, "EXCH_IND"] -= 1
+
+S.reactions.loc[S.reactions.REACTION_NAMES == "Biomass", "EXCH"] = False
+index = S.reactions.loc[S.reactions.REACTION_NAMES == "Biomass", "EXCH_IND"].values[0]
+S.reactions.loc[S.reactions.REACTION_NAMES == "Biomass", "EXCH_IND"] = 0
+S.reactions.loc[S.reactions.EXCH_IND &gt; index, "EXCH_IND"] -= 1
+</code></pre>
+<p>Next, we will need to add the signalling capability to the susceptible model, so that the uptake of toxin results in a proportionate reduction in growth rate. This can be done using a function from <code>cometspy</code> called <code>add_signal</code>. </p>
+<p>To add a signal, first retrieve the ID of the biomass and toxin exchange reactions, as these are important arguments for the <code>add_signal</code> function.</p>
+<pre><code>biomass_id = S.reactions.loc[S.reactions.REACTION_NAMES == &quot;Biomass&quot;, &quot;ID&quot;].values[0]
+toxin_exch_id = S.reactions.loc[S.reactions.REACTION_NAMES == &quot;EX_toxin_e&quot;, &quot;EXCH_IND&quot;].values[0]
+</code></pre>
+<p>The <code>add_signal</code> function also requires a baseline growth rate in the absence of the signalling molecule, a threshold concentration of the signaling molecule where the effect on growth rate starts, the slope of the effect on growth rate, and the concentration of the signaling molecule where the effect on growth rate saturates. Adding a signal to the susceptible model will therefore look something like this:</p>
+<pre><code>gr_absense_of_toxin = growth_rate # baseline growth rate
+toxin_conc_where_effect_starts = 0. # threshold concentration where effect starts
+slope_of_toxin_effect = -growth_rate # slope of the relationship betwen toxin concentration and growth rate
+toxin_conc_where_effect_saturates = 1. # threshold concentration where the effect ends
+add_signal_parameter = 'bounded_linear'
+S.add_signal(biomass_id, toxin_exch_id, 'ub', add_signal_parameter, 
+             parms = [gr_absense_of_toxin, 
+                      toxin_conc_where_effect_starts, 
+                      slope_of_toxin_effect,
+                     toxin_conc_where_effect_saturates])
+</code></pre>
+<p>Using these arguments will create a signal such that the growth rate of the susceptible model will reduce in proportion to the concentration of toxin in the environment, with the effect on growth rate occurring whenever toxin is present and saturating when the toxin concentration reaches 1. The <code>add_signal_parameter</code> tunes the shape of relationship between toxin concentration and biomass. Here, the <code>"bounded_linear"</code> argument ensures that the upper bound of growth rate does not become negative. </p>
+<h2 id="important-notes-on-toxins-and-signalling">Important notes on toxins and signalling</h2>
+<p>While this tutorial provides an example of toxin production, the <code>add_signal</code> function can accommodate a variety of approaches for modeling all types of signalling compounds. Manipulating the arguments of the function will determine the metabolic consequences of a signalling molecule for a focal model. The function has five main arguments:</p>
+<pre><code>model.add_signal(id_of_reaction_altered, 
+metabolite_exchange_id, 
+reaction_bound_altered, 
+functional_relationship, 
+parms = [baseline_value, conc_where_effect_starts, slope_of_effect, conc_where_effect_ends])
+</code></pre>
+<p>The biological significance of these parameters is:</p>
+<ul>
+<li><code>id_of_reaction_altered</code> = the ID of the metabolic reaction whose bounds will be altered by the uptake of the signalling compound, generally the biomass reaction</li>
+<li><code>metabolite_exchange_id</code> = the ID of the signalling compound exchange reaction</li>
+<li><code>reaction_bound_altered</code> = the bound that is impacted by signalling compound uptake, either <code>'ub'</code> (upper bound, generally appropriate for toxins) or <code>'lb'</code> (lower bound, may be appropriate for upregulating certain reactions in response to the presence of a metabolite)</li>
+<li><code>functional_relationship</code> = the shape of the functional relationship between the signalling compound concentration and the altered reaction bound, with three options available: <code>'linear'</code>, <code>'bounded_linear'</code>, and <code>'generalized_logistic'</code></li>
+<li><code>baseline_value</code> = the default value of the flux through the altered reaction</li>
+<li><code>conc_where_effect_starts</code> = the concentration of the signalling compound where the effect on the reaction starts</li>
+<li><code>slope_of_effect</code> = the slope of the functional relationship between the signalling compound concentration and the altered reaction bound</li>
+<li><code>conc_where_effect_ends</code> = the concentration of the signalling compound where the effect on the reaction saturates</li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../comets-installation/" class="btn btn-neutral float-left" title="COMETS Installation"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../spatial-simulations/" class="btn btn-neutral float-right" title="Running simulations">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../comets-installation/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../spatial-simulations/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
