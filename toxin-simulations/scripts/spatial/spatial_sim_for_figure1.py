@@ -209,7 +209,7 @@ for i in expanded_grid.index.values:
         gr_absense_of_toxin = growth_rate
         toxin_conc_where_effect_starts = 0.
         slope_of_toxin_effect = -growth_rate
-        toxin_conc_where_effect_saturates = toxin_coefficient
+        toxin_conc_where_effect_saturates = 1
         S.add_signal(biomass_id, toxin_exch_id, 'ub', add_signal_parameter, 
                 parms = [gr_absense_of_toxin, 
                         toxin_conc_where_effect_starts, 
@@ -283,9 +283,9 @@ for i in expanded_grid.index.values:
 
     print(i + 1, "of", max(expanded_grid.index.values) + 1)
 
-total_biomass_data.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/total_biomass_figure1.csv")
-metabolite_data.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/metabolites_figure1.csv")
-starting_locations.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/starting_locations_figure1.csv")
+total_biomass_data.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/total_biomass_figure1_bound1.csv")
+metabolite_data.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/metabolites_figure1_bound1.csv")
+starting_locations.to_csv("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/starting_locations_figure1_bound1.csv")
 
 import glob
 for f in glob.glob("/Users/abisesi/Desktop/PhD/Projects/Toxins-Growth-Rate/toxin-simulations/simulations_spatial/totalbiomasslog*"):

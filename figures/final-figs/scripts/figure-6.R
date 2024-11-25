@@ -38,7 +38,7 @@ generate_uniform_samples <- function(df, bootstrap_number) {
   return(result_df)
 }
 
-generate_normal_samples <- function(df, bootstrap_number, sd_type, sd_provided = NA) {
+generate_normal_samples <- function(df, bootstrap_number, num_samples = 1, sd_type, sd_provided = NA) {
   # Ensure the data frame has the required columns
   if (!all(c("species_id", "lowerci", "upperci", "predicted_d") %in% names(df))) {
     stop("The data frame must contain 'species_id', 'lowerci', 'predicted_d', and 'upperci' columns.")
@@ -56,7 +56,7 @@ generate_normal_samples <- function(df, bootstrap_number, sd_type, sd_provided =
     }
     
     if (sd_type == "from_interval") {
-      samples <- rnorm(bootstrap_number, mean = mean, sd = (upper - lower)/(2 * 1.96))
+      samples <- rnorm(bootstrap_number, mean = mean, sd = (sqrt(num_samples)*(upper - lower))/(2 * 1.96))
     } else if (sd_type == "preset") {
       samples <- rnorm(bootstrap_number, mean = mean, sd = sd_provided)
     }
@@ -96,7 +96,7 @@ strep_bcgs <- strep %>% dplyr::select(species_id, predicted_d) %>% unique() %>%
   filter(present == 1) %>%
   pull(type) %>% unique()
 
-bootstrap_number <- 1000
+bootstrap_number <- 10
 
 # significant models in original data
 sig <- c("hserlactone", "aminocoumarin", "RRE-containing",
@@ -141,10 +141,10 @@ for (i in c(1:bootstrap_number)){
 
 #calculated sd
 calculated_sd_samples <- generate_normal_samples(df = strep %>% dplyr::select(species_id, upperci, lowerci, predicted_d) %>% unique(), 
-                                                 bootstrap_number = bootstrap_number, sd_type = "from_interval")
+                                                 bootstrap_number = bootstrap_number, num_samples = 1, sd_type = "from_interval")
 
 sample_data <- calculated_sd_samples %>% group_by(species_id) %>% mutate(replicate_number = 1:n()) %>%
-  ungroup() %>% mutate(rate = log(2) / sample)
+  ungroup() %>% mutate(rate = log(2) / abs(sample))
 
 all_models <- data.frame()
 for (i in strep_bcgs){
