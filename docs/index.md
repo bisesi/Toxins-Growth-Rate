@@ -1,0 +1,8 @@
+# Computation Of Microbial Ecosystems in Time and Space with Toxins
+
+Welcome to the online documentation for the metabolic modeling approaches detailed in the manuscript, "The strength of selection for costly toxin production increases with growth rate." The paper preprint is available at [mkdocs.org](https://www.mkdocs.org) and an associated GitHub can be found at [mkdocs.org](https://www.mkdocs.org).
+
+The modeling approaches described in this documentation build upon the existing software platform COMETS. COMETS can be used to perform computer simulations of microbial communities based on stochiometric modeling of the genome-scale metabolic network using dynamic flux balance analysis and on a discrete approximation of diffusion. For additional information about the COMETS platform, including its installation and usage, please see the paper detailing its creation [(Harcombe et al., Metabolic Resource Allocation in Individual Microbes Determines Ecosystem Interactions and Spatial Dynamics, Cell Reports, 2014)](https://www.cell.com/cell-reports/fulltext/S2211-1247(14)00280-0), the software's [documentation](https://segrelab.github.io/comets-manual/), or the source code for the COMETS Python Interface on [GitHub](https://github.com/segrelab/cometspy).
+
+Please note this documentation is **only intended to provide a step-by-step tutorial to use COMETS to model toxins or signalling molecules**. The COMETS platform itself is built and maintained by the [Daniel Segre Lab](https://www.bu.edu/segrelab/) at Boston University. Questions about or issues with the software should be directed to [comets@bu.edu](mailto:comets@bu.edu) or submitted via GitHub.
+
