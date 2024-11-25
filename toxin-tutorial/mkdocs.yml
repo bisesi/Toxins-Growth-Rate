@@ -1,0 +1,12 @@
+site_name: COMETS Toxin Implementation
+nav:
+    - Home: index.md
+    - COMETS Overview: 
+        - COMETS Capabilities: comets-capabilities.md
+        - COMETS Installation: comets-installation.md
+    - Toxin and Signaling User Guide:
+        - Building models: building-models.md
+        - Running simulations: spatial-simulations.md
+    - About: 
+        - License: license.md
+theme: readthedocs
