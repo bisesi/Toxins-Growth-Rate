@@ -7,6 +7,7 @@ library("tidyverse")
 library("stringdist")
 library("cowplot")
 library("tidytext")
+library("ggtext")
 
 # load data
 strep <- read_csv(here::here("bioinformatics-data", "strep", "full_growth_toxin_dataset_strep.csv")) %>%
@@ -77,6 +78,11 @@ toxins <- c("RiPP-like", "NRPS", "NRPS-like", "butyrolactone", "cyanobactin",
             "amglyccycl", "blactam", "thiopeptide", "betalactone",
             "transAT-PKS-like", "furan", "LAP", "T2PKS", "T1PKS", "indole", "RRE-containing", "aminocoumarin",
             "lanthipeptide-class-ii", "lanthipeptide-class-iii", "lanthipeptide-class-iv")
+
+robust <- c("NRPS", "RRE-containing", "RiPP-like", "aminoglycoside", "arylpolyene",
+            "butrylactone", "homoserine lactone", "indole", "lanthipeptide-class-iv", "linear azol(in)e",
+            "melanin", "non-alpha poly-amino acids", "other", "phosphoglycolipid", "ranthipeptide",
+            "thiopeptide", "transAT-PKS-like", "type I PKS", "type II PKS")
 # part B
 partB <- binomial_models_strep %>%
   filter(p_adjusted < 0.05) %>%
@@ -90,6 +96,7 @@ partB <- binomial_models_strep %>%
                           type == "T2PKS" ~ "type II PKS",
                           type == "amglyccycl" ~ "aminoglycoside",
                           TRUE ~ type)) %>%
+  mutate(type = ifelse(type %in% robust, paste0("***", type, "***"), type)) %>%
   ggplot(aes(x = fct_reorder(type, beta, .desc = TRUE), y = beta, color = toxin)) +
   geom_point(size = 4) +
   geom_linerange(aes(ymax = upperci, ymin = lowerci)) +
@@ -98,14 +105,14 @@ partB <- binomial_models_strep %>%
   geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
   ylab("beta") +
   scale_color_manual(values = c("black", "#E69F00")) +
-  theme(legend.position = "none", axis.title.y = element_blank())
+  theme(legend.position = "none", axis.title.y = element_blank(), axis.text = element_markdown())
 
 # part C
-pos_bcgs_strep <- binomial_models_strep  %>%
-  filter(p_adjusted < 0.05 & beta > 2) %>% arrange(desc(beta)) %>% slice_head(n = 6) %>% pull(type) 
+pos_bcgs_strep <- c("type II PKS", "NRPS", "melanin", "RiPP-like")
 
 partC <- strep %>% dplyr::select(species_id, predicted_d) %>% unique() %>%
   inner_join(., bcg_presence_absence, by = "species_id") %>%
+  mutate(type = ifelse(type == "T2PKS","type II PKS",type)) %>%
   filter(type %in% pos_bcgs_strep) %>%
   mutate(rate = log(2) / predicted_d) %>%
   ggplot(aes(x = rate, y = present)) +
@@ -119,11 +126,11 @@ partC <- strep %>% dplyr::select(species_id, predicted_d) %>% unique() %>%
   geom_smooth(method = "glm", method.args = list(family = "binomial"))
 
 # part D
-neg_bcgs_strep <- binomial_models_strep  %>%
-  filter(p_adjusted < 0.05 & beta < 0) %>% arrange(beta) %>% pull(type)
+neg_bcgs_strep <- c("homoserine lactone", "RRE-containing", "arylpolyene", "indole")
 
 partD <- strep %>% dplyr::select(species_id, predicted_d) %>% unique() %>%
   inner_join(., bcg_presence_absence, by = "species_id") %>%
+  mutate(type = ifelse(type == "hserlactone","homoserine lactone",type)) %>%
   filter(type %in% neg_bcgs_strep) %>%
   mutate(rate = log(2) / predicted_d) %>%
   ggplot(aes(x = rate, y = present)) +
@@ -138,7 +145,7 @@ partD <- strep %>% dplyr::select(species_id, predicted_d) %>% unique() %>%
 
 
 #final figure
-figure5 <- plot_grid(plot_grid(partA, partB, ncol = 2, labels = c("A", "B"), label_size = 26, rel_widths = c(0.8,1)), 
+figure5 <- plot_grid(plot_grid(partA, partB, ncol = 2, labels = c("A", "B"), label_size = 26, rel_widths = c(0.6,1)), 
                      partC, partD, ncol = 1, labels = c("", "C", "D"), label_size = 26, rel_heights = c(1, 0.5, 0.5))
 
 png(here::here("figures", "final-figs", "imgs", "figure-5.png"), res = 300, width = 3000, height = 3000)

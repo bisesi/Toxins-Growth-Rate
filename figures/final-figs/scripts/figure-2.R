@@ -16,8 +16,9 @@ library("ggforce")
 source(here::here("functions", "functions.R"))
 
 #part A - coeff fitness
-biomass <- get_colony_biomass(here::here("toxin-simulations", "simulations_spatial", "figure2", "total_biomass_figure2_coeff.csv"), toxin_coeff)
-stationary <- get_stationary_timepoint(here::here("toxin-simulations", "simulations_spatial", "figure2", "total_biomass_figure2_coeff.csv"), toxin_coeff)
+biomass <- get_colony_biomass(here::here("toxin-simulations", "simulations_spatial", "figure2", "total_biomass_figure2_coeff.csv"), toxin_coeff) 
+stationary <- biomass %>% select(-c(`...1`)) %>% group_by(toxin_coeff, growth_rate, spatial_seed) %>% filter(cycle == max(cycle)) %>% 
+  select(cycle, growth_rate, spatial_seed, toxin_coeff) %>% unique()
 
 coeff <- biomass %>% inner_join(., stationary, by = c("cycle", "growth_rate", "spatial_seed", "toxin_coeff")) %>% 
   group_by(growth_rate, spatial_seed, species, toxin_coeff) %>% 
@@ -75,7 +76,8 @@ partA <- plot_grid(partA2, partA1, ncol = 2, rel_widths = c(1, 0.85))
 
 # part B - toxin diffusion rate
 biomass <- get_colony_biomass(here::here("toxin-simulations", "simulations_spatial", "figure2", "total_biomass_figure2_diff.csv"), toxin_diff)
-stationary <- get_stationary_timepoint(here::here("toxin-simulations", "simulations_spatial", "figure2", "total_biomass_figure2_diff.csv"), toxin_diff)
+stationary <- biomass %>% group_by(toxin_diff, growth_rate, spatial_seed) %>% filter(cycle == max(cycle)) %>% 
+  select(cycle, growth_rate, spatial_seed, toxin_diff) %>% unique()
 
 diff <- biomass %>% inner_join(., stationary, by = c("cycle", "growth_rate", "spatial_seed", "toxin_diff")) %>% 
   group_by(growth_rate, spatial_seed, species, toxin_diff) %>% 
@@ -130,8 +132,8 @@ partB <- plot_grid(partB2, partB1, ncol = 2, rel_widths = c(1, 0.85))
 
 # part C - density
 biomass <- read_csv(here::here("toxin-simulations", "simulations_spatial", "figure2", "total_biomass_figure2_density.csv"))
-stationary <- biomass %>% group_by(cycle, growth_rate, spatial_seed, density) %>% summarize(total = sum(value)) %>%
-  group_by(growth_rate, spatial_seed, density) %>% filter(total == max(total)) %>% slice_head() %>% ungroup()
+stationary <- biomass %>% group_by(density, growth_rate, spatial_seed) %>% filter(cycle == max(cycle)) %>% 
+  select(cycle, growth_rate, spatial_seed, density) %>% unique()
 
 density <- biomass %>% inner_join(., stationary, by = c("cycle", "growth_rate", "spatial_seed", "density")) %>% 
   group_by(growth_rate, spatial_seed, variable, density) %>% 
@@ -187,7 +189,7 @@ partC <- plot_grid(partC2, partC1, ncol = 2, rel_widths = c(1, 0.85))
 #part D - resistant frequency fitness
 biomass <- read_csv(here::here("toxin-simulations", "simulations_spatial", "figure2", "total_biomass_figure2_ratio.csv"))
 stationary <- biomass %>% group_by(cycle, growth_rate, spatial_seed, prod_ratio) %>% summarize(total = sum(value)) %>%
-  group_by(growth_rate, spatial_seed, prod_ratio) %>% filter(total == max(total)) %>% slice_head() %>% ungroup()
+  group_by(growth_rate, spatial_seed, prod_ratio) %>% filter(cycle == max(cycle)) %>% slice_head() %>% ungroup()
 
 ratio <- biomass %>% inner_join(., stationary, by = c("cycle", "growth_rate", "spatial_seed", "prod_ratio")) %>% 
   group_by(growth_rate, spatial_seed, variable, prod_ratio) %>% 

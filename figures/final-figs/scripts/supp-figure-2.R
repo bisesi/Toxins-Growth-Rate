@@ -171,18 +171,18 @@ for (i in c(1:bootstrap_number)){
 }
 
 # part A - distribution of significant models
-partA <- rbind(adjusted_models_calcnorm %>% mutate(distribution = "calculated normal"),
+partA <- rbind(adjusted_models_calcnorm %>% mutate(distribution = "normal"),
       adjusted_models_uniform %>% mutate(distribution = "uniform")) %>%
   filter(p_adjusted < 0.05) %>%
   group_by(replicate_number, distribution) %>% summarize(n = n()) %>% ungroup() %>%
-  ggplot(aes(n)) + geom_histogram(binwidth = 1) + facet_wrap(~distribution, scales = "free") + theme_bw(base_size = 16) +
+  ggplot(aes(n)) + geom_histogram(binwidth = 1) + facet_wrap(~distribution) + theme_bw(base_size = 16) +
   xlab("# of significant models") + ylab("# of bootstrap replicates")
 
-# calc norm - mean26.4, median 26,  max 32, min 5
-# uni - mean 26.6, median 27, max 33, min 20
+# calc norm - mean 26.5, median 26, max 32, min 20
+# uni - mean 26.6, median 27, max 34, min 21
 
 # part B - 
-per_group <- rbind(adjusted_models_calcnorm %>% mutate(distribution = "calculated normal"),
+per_group <- rbind(adjusted_models_calcnorm %>% mutate(distribution = "normal"),
                    adjusted_models_uniform %>% mutate(distribution = "uniform")) %>%
   filter(p_adjusted < 0.05) %>% 
   group_by(type, distribution) %>% summarize(n = n()) %>%
@@ -198,27 +198,41 @@ per_group <- rbind(adjusted_models_calcnorm %>% mutate(distribution = "calculate
                           type == "amglyccycl" ~ "aminoglycoside",
                           TRUE ~ type))
 
-upper_half_normal <- quantile(per_group %>% filter(distribution == "calculated normal") %>% pull(n), 0.5)
-upper_half_uni <- quantile(per_group %>% filter(distribution == "uniform") %>% pull(n), 0.5)
+robust_groups <- per_group %>% filter(n / bootstrap_number >= 0.95 ) %>% 
+  group_by(type) %>% summarize(n = n()) %>% filter(n == 2) %>% pull(type) %>% unique()
 
-partB <- per_group %>% filter(n >= min(upper_half_normal, upper_half_uni)) %>%
+partB <- per_group %>% filter((n / bootstrap_number) > 0.05) %>%
   ggplot(aes(x = fct_reorder(type, n), y = (n / bootstrap_number)*100, fill = sig)) + geom_bar(stat = "identity", position = position_dodge(0.9)) + 
-  coord_flip() + facet_wrap(~distribution, scales = "free") + ylab("% of bootstrap replicates") + theme_bw(base_size = 16) + 
+  coord_flip() + facet_wrap(~distribution) + ylab("% of bootstrap replicates") + theme_bw(base_size = 16) + 
   scale_fill_manual(values = c("grey", "black")) +
   theme(axis.title.y = element_blank(), legend.position = "none")
 
 # part C
-partC <- rbind(adjusted_models_calcnorm %>% mutate(distribution = "calculated normal"),
-      adjusted_models_uniform %>% mutate(distribution = "uniform")) %>%
+betas <- rbind(adjusted_models_calcnorm %>% mutate(distribution = "normal"),
+               adjusted_models_uniform %>% mutate(distribution = "uniform")) %>%
   group_by(type, distribution) %>% summarize(mean_estimate = mean(estimate), sd = sd(estimate)) %>%
-  ggplot(aes(x = fct_reorder(type, mean_estimate), y = mean_estimate)) + geom_point() + 
-  coord_flip() + facet_wrap(~distribution, scales = "free") + ylab("mean resampled beta") + theme_bw(base_size = 16) +
+  filter(type %in% sig) %>%
+  mutate(type = case_when(type == "T1PKS" ~ "type I PKS",
+                          type == "T3PKS" ~ "type III PKS",
+                          type == "hserlactone" ~ "homoserine lactone",
+                          type == "LAP" ~ "linear azol(in)e",
+                          type == "hglE-KS" ~ "heterocyst glycolipid synthase-like PKS",
+                          type == "NAPAA" ~ "non-alpha poly-amino acids",
+                          type == "T2PKS" ~ "type II PKS",
+                          type == "amglyccycl" ~ "aminoglycoside",
+                          TRUE ~ type))
+
+betas$type <- fct_reorder(betas$type, betas$mean_estimate, .desc = TRUE)
+
+partC <- betas %>% 
+  ggplot(aes(x = type, y = mean_estimate)) + geom_point(size = 1.5, stroke = 1.5) + 
+  coord_flip() + facet_wrap(~distribution) + ylab("resampled beta") + theme_bw(base_size = 16) +
   geom_linerange(aes(ymax = sd + mean_estimate, ymin = mean_estimate - sd)) +
-  theme(axis.title.y = element_blank(), legend.position = "none")
+  theme(axis.title.y = element_blank(), legend.position = "none") + geom_hline(yintercept = 0, color = "red", linetype = "dashed")
 
 #final figure
-suppfig2 <- plot_grid(partA, partB, ncol = 2, label_size = 26, labels = c("A", "B"), rel_widths = c(0.5,1))
+suppfig2 <- plot_grid(partA, partB, partC, ncol = 3, label_size = 26, labels = c("A", "B", "C"), rel_widths = c(0.5,1,1))
 
-png(here::here("figures", "final-figs", "imgs", "supp-figure-2.png"), res = 300, width = 4250, height = 2700)
+png(here::here("figures", "final-figs", "imgs", "supp-figure-2.png"), res = 300, width = 7500, height = 2000)
 suppfig2
 dev.off()
