@@ -1,5 +1,5 @@
 # ATB
-# supplemental figure 2
+# supplemental figure 1
 # grodon predictions
 
 #load packages

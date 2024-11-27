@@ -27,7 +27,7 @@ partA_spatial <- locations %>%
         strip.background = element_blank(), axis.ticks = element_blank(), strip.text.y = element_blank())
 
 # part B - toxin localization
-media <- read_csv(here::here("toxin-simulations", "simulations_spatial", "figure1", "metabolites_figure1.csv"))
+media <- read_csv(here::here("toxin-simulations", "simulations_spatial", "figure1", "metabolites_figure1_bound1.csv"))
 
 metabolite_variation <- media %>% group_by(metabolite, growth_rate, spatial_seed, cycle) %>%
   filter(cycle > 1) %>%
@@ -58,15 +58,19 @@ for (i in unique(locations$spatial_seed)){
   susceptibles <- rbind(susceptibles, data.frame(sus, spatial_seed = i))
 }
 
+stationary <- get_stationary_timepoint(here::here("toxin-simulations", "simulations_spatial", "figure1", "total_biomass_figure1.csv"))
+
 distances_vs_biomass <- biomass %>% mutate(label = paste(species, colony_number, sep = "_")) %>% rename(biomass = value) %>%
   inner_join(., susceptibles %>% rename(distance = value), by = c("spatial_seed", "label")) %>%
-  group_by(growth_rate, spatial_seed) %>% filter(cycle == max(cycle)) %>% ungroup()
+  group_by(growth_rate, spatial_seed) %>% inner_join(., stationary, by = c("growth_rate", "spatial_seed", "cycle"))
 
-fast_slope <- coef(lm(biomass ~ distance, data = distances_vs_biomass %>% filter(growth_rate == 1 & spatial_seed == 5) %>% mutate(biomass = biomass * 1e7)))[2]
-slow_slope <- coef(lm(biomass ~ distance, data = distances_vs_biomass %>% filter(growth_rate == 0.125 & spatial_seed == 5) %>% mutate(biomass = biomass * 1e7)))[2]
+seed = 5
+
+fast_slope <- coef(lm(biomass ~ distance, data = distances_vs_biomass %>% filter(growth_rate == 1 & spatial_seed == seed) %>% mutate(biomass = biomass * 1e7)))[2]
+slow_slope <- coef(lm(biomass ~ distance, data = distances_vs_biomass %>% filter(growth_rate == 0.125 & spatial_seed == seed) %>% mutate(biomass = biomass * 1e7)))[2]
 
 #significance of fast slope = 0.00254, slow slope = 0.45
-partC <- distances_vs_biomass %>% filter(growth_rate %in% c(0.125, 1) & spatial_seed == 5) %>% 
+partC <- distances_vs_biomass %>% filter(growth_rate %in% c(0.125, 1) & spatial_seed == seed) %>% 
   mutate(type = "susceptibles") %>%
   ggplot(aes(x = distance, y = biomass * 1e7, color = as.factor(growth_rate))) +
   geom_point() + theme_bw(base_size = 16) + geom_smooth(method = "lm", se = FALSE) + labs(color = "growth rate") +
