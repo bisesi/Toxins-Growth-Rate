@@ -100,22 +100,17 @@
               
                 <h1 id="getting-started-with-comets">Getting started with COMETS</h1>
 <h2 id="installation-of-comets-prerequisites">Installation of COMETS prerequisites</h2>
-<p>There are two software prerequisites for the successful usage of COMETS. </p>
-<p>First, Java must be <a href="https://www.java.com/en/download/manual.jsp">downloaded and installed</a>. The minimum version of required 64-bit Java is 1.8.</p>
-<p>Second, the Gurobi software should be <a href="https://www.gurobi.com/downloads/gurobi-software/">downloaded and installed</a>. The installation of Gurobi requires obtaining a license, which is <a href="https://www.gurobi.com/downloads/end-user-license-agreement-academic/">free for academics</a>. <strong>Follow the Gurobi instructions to activate your license <em>before</em> attempting to use COMETS.</strong> </p>
-<p>If COMETS is struggling to connect to Gurobi, users should begin the troubleshooting process by making sure the <code>GUROBI_HOME</code> environment variable is set. In Windows, this can be done in the Control Panel. In Linux, the file <code>.bashrc</code> can be edited to contain the line <code>export GUROBI_HOME=/usr/gurobi/gurobi904/linux64</code> where <code>gurobi904</code> is replaced with the name and number of the appropriate installed version. For MacOS, the line <code>export GUROBI_HOME=/Library/gurobi904/mac64</code> should be added to the <code>.zshrc</code> file, where <code>gurobi904</code> is replaced with the identifying information for the installed version.</p>
+<p>There are two software prerequisites for COMETS. </p>
+<p>First, users must download and install <a href="https://www.java.com/en/download/manual.jsp">Java</a>. The minimum version of required 64-bit Java is 1.8.</p>
+<p>Second, users should download and install <a href="https://www.gurobi.com/downloads/gurobi-software/">Gurobi</a>. The installation of Gurobi requires a license, which is <a href="https://www.gurobi.com/downloads/end-user-license-agreement-academic/">free for academics</a>. <strong>Follow the Gurobi instructions to activate your license <em>before</em> attempting to use COMETS.</strong> </p>
+<p>If COMETS is struggling to connect to Gurobi, users can begin the troubleshooting process by making sure the <code>GUROBI_HOME</code> environment variable is set. How exactly this is done will depend on the operating system of the user's computer. More information can be found on the <a href="https://www.runcomets.org/home">COMETS website</a>.</p>
 <h2 id="installation-of-the-comets-software">Installation of the COMETS software</h2>
-<p>COMETS can be installed in two ways: using the COMETS installer or by unpacking the .tar.gz file. Use of the installer is recommended and is available <a href="https://www.runcomets.org/installation">here</a>. Users are asked to register, after which they can obtain the correct installer for their system. Installation for Windows, MacOS, and Linux systems are all available. The installer will guide users through a standard GUI installation procedure.</p>
-<p>Alternatively, users can use the <code>comets_x.x.x.tar.gz</code> file for custome installation, best on a Linux system. The file should be unpacked in the directory where COMETS will be installed in order to create the COMETS installation directory:</p>
-<pre><code>$tar -xzvf comets_x.x.x.tar.gz   ./
-</code></pre>
-<p>If a user is completing custom installation on a Unix system (Linux or MacOS), they will also need to specify the <code>COMETS_HOME</code> environmental variable so that it points to the COMETS installation folder. This is done by adding the following line to the<code>.bashrc</code> file located in the home folder:</p>
-<pre><code>export COMETS_HOME = &quot;/your/comets/installation/folder&quot; 
-</code></pre>
+<p>COMETS can be installed in two ways: using the COMETS installer or by unpacking the .tar.gz file. The installer is available <a href="https://www.runcomets.org/installation">here</a>. Installation for Windows, MacOS, and Linux systems are all available. The installer will guide users through a standard GUI installation procedure.</p>
+<p>Alternatively, users can use the <code>comets_x.x.x.tar.gz</code> file for custom installation. More information on this process is available <a href="https://cometspy.readthedocs.io/en/latest/installation.html">here</a>.</p>
 <h2 id="installation-of-the-comets-python-toolbox">Installation of the COMETS <code>Python</code> Toolbox</h2>
 <p>While both <code>MATLAB</code> and <code>Python</code> toolboxes exist for COMETS, this tutorial uses <code>Python</code> to implement secondary metabolites.</p>
 <p>It is recommended that users install <code>Python</code> (version &gt;=3.6) using the <a href="https://www.anaconda.com/download">Anaconda distribution</a> or other method as preferred. Anaconda and related methods have the benefit of installing Jupyter Notebooks at the same time. </p>
-<p>The COMETS <code>Python</code> toolbox (<code>cometspy</code>) is available from the package manager <code>PyPI</code> using the <code>pip</code> command. If <code>Python</code> has been installed through Anaconda, <code>pip</code> will have also been installed. Otherwise, in Linux systems, the <code>pip</code> command is installed through available repositories (e.g. <code>sudo apt-get install python3-pipin</code> Debian-based distributions). Once <code>pip</code> has been installed, <code>cometspy</code> can be downloaded by running the terminal command:</p>
+<p>The COMETS <code>Python</code> toolbox (<code>cometspy</code>) is available from the package manager <code>PyPI</code> using the <code>pip</code> command.</p>
 <pre><code>pip install cometspy
 </code></pre>
 <h2 id="version-issues">Version issues</h2>
@@ -127,7 +122,7 @@
 <h2 id="dependencies">Dependencies</h2>
 <p>All simulations in this tutorial will rely on 4 <code>Python</code> packages:</p>
 <ul>
-<li><code>cobra</code>, especially <code>Metabolite</code>, <code>Reaction</code>, and <code>Model</code> </li>
+<li><code>cobra</code></li>
 <li><code>random</code></li>
 <li><code>pandas</code></li>
 <li><code>cometspy</code></li>
