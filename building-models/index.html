@@ -220,12 +220,11 @@ S.add_signal(biomass_id, toxin_exch_id, 'ub', add_signal_parameter,
 <p>Using these arguments will create a signal such that the growth rate of the susceptible model will reduce in proportion to the concentration of toxin in the environment, with the effect on growth rate occurring whenever toxin is present and saturating when the toxin concentration reaches 1. The <code>add_signal_parameter</code> tunes the shape of relationship between toxin concentration and biomass. Here, the <code>"bounded_linear"</code> argument ensures that the upper bound of growth rate does not become negative. </p>
 <h2 id="important-notes-on-toxins-and-signalling">Important notes on toxins and signalling</h2>
 <p>While this tutorial provides an example of toxin production, the <code>add_signal</code> function can accommodate a variety of approaches for modeling all types of signalling compounds. Manipulating the arguments of the function will determine the metabolic consequences of a signalling molecule for a focal model. The function has eight main arguments:</p>
-<pre><code>model.add_signal(altered_reaction_id, metabolite_id, altered_bound, functional_relationship, 
-    parms = [baseline_value, conc_where_effect_starts, slope_of_effect, conc_where_effect_ends])
+<pre><code>model.add_signal(altered_reaction_id, metabolite_id, altered_bound, functional_relationship, parms = [baseline_value, conc_where_effect_starts, slope_of_effect, conc_where_effect_ends])
 </code></pre>
 <p>The biological significance of these parameters is:</p>
 <ul>
-<li><code>ialtered_reaction_id</code> = the numeric ID of the metabolic reaction whose bounds will be altered by the uptake of the signalling compound, generally the biomass reaction</li>
+<li><code>altered_reaction_id</code> = the numeric ID of the metabolic reaction whose bounds will be altered by the uptake of the signalling compound, generally the biomass reaction</li>
 <li><code>metabolite_id</code> = the ID of the signalling compound exchange reaction</li>
 <li><code>altered_bound</code> = the bound that is impacted by signalling compound uptake, either <code>'ub'</code> (upper bound) or <code>'lb'</code> (lower bound)</li>
 <li><code>functional_relationship</code> = the shape of the functional relationship between the signalling compound concentration and the altered reaction bound, with three options available: <code>'linear'</code>, <code>'bounded_linear'</code>, and <code>'generalized_logistic'</code></li>
