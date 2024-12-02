@@ -1,10 +1,10 @@
-# Building metabolic models with secondary metabolite production or response
+# Building metabolic models with signalling compound production or response
 
 The first step to running simulations with signalling compounds is building metabolic models that can accommodate the production of or response to these compounds. We will detail the model building process used in our paper, although this protocol can also be adapted to make changes to existing models rather than developing toy models. 
 
 ## Making toy models using `cobra`
 
-The most straightforward way to generate toy metabolic models is to create a function that defines the desired models using a variety of functions and object types from `cobra`, in particular the `Metabolite`, `Reaction`, and `Model` classes.
+The most straightforward way to generate toy metabolic models is to create a function that defines the desired models using a variety of functions and object types from `cobrapy`.
 
     def make_RPS_cobra_models_biomass_cost(growth_rate = 1., toxin_cost = 0.02, resistance_cost = 0.0, toxin_prod = 1.):
         # create metabolites for carbon and toxin
@@ -69,7 +69,7 @@ The most straightforward way to generate toy metabolic models is to create a fun
 
         return((producer, resistant, susceptible))
 
-This function takes four arguments (growth rate, the cost of toxin production, the cost of toxin resistance, and the amount of toxin produced per gram of biomass produced) to create three model genotypes (susceptibles, producers, and resistant cheaters). Susceptible models have four metabolic reactions (carbon exchange, carbon transport, biomass production, and extracellular to intracellular toxin exchange), producers have five metabolic reactions (carbon exchange, carbon transport, biomass production, intracellular to extracellular toxin exchange, and toxin transport), and resistant cheaters have three metabolic reactions (carbon exchange, carbon transfer, and biomass production). 
+This function takes four arguments (growth rate, the cost of toxin production, the cost of toxin resistance, and the amount of toxin produced per gram of biomass produced) to create three model genotypes (susceptibles, toxin producers, and resistant cheaters). Susceptible models have four metabolic reactions (carbon exchange, carbon transport, biomass production, and extracellular to intracellular toxin exchange), producers have five metabolic reactions (carbon exchange, carbon transport, biomass production, intracellular to extracellular toxin exchange, and toxin transport), and resistant cheaters have three metabolic reactions (carbon exchange, carbon transfer, and biomass production). 
 
 When manipulating this function to generate toy models, particular attention should be paid to the construction of the biomass reactions, which will allow users to change the relative growth rates of each model (the default here is that they all have the same growth rate, aside from minimal penalities for the cost of toxin production or resistance) along with a variety of other assumptions. Here, toxin production is tied to producer biomass and carbon uptake:
 
@@ -80,7 +80,7 @@ Biomass_producer.add_metabolites({carbon_c: -(1. + toxin_cost + resistance_cost)
 
 This setup defines toxin production in such a way that toxins are only created during growth and that the costs associated with toxin production (`toxin_cost`) or resistance to toxin (`resistance_cost`) vary directly with growth rate. It also establishes that toxin production is directly proportional to carbon uptake, regardless of growth rate, although the amount of toxin created per unit of carbon can be changed (`toxin_prod`). If desired, these constraints can be altered to fit the appropriate biological details of the signalling compounds being modeled. 
 
-Notably, this function also penalizes the biomass production of resistant cheaters to impose a cost of toxin resistance (`resistance_cost`), seen here:
+Notably, the function defined above also penalizes the biomass production of resistant cheaters to impose a cost of toxin resistance (`resistance_cost`), seen here:
 
 ```
 Biomass_resistant.add_metabolites({carbon_c: -(1. + resistance_cost)})
@@ -88,22 +88,22 @@ Biomass_resistant.add_metabolites({carbon_c: -(1. + resistance_cost)})
 
 Many of these modeling assumptions can be adjusted by changing the biomass reactions for any of the three models, or by altering the four arguments in the function call:
 
-    growth_rate = 0.75 # growth rate for all three species
+    growth_rate = 0.75 # growth rate for all three genotypes
     toxin_cost = 0.02 # 2% reduction in growth rate as a result of producing energetically expensive toxin
     resistance_cost = 0 # no reduction in growth rate as a result of being resistant to toxin
-    toxin_prod = 15 # 15 mmol of toxin produced per gram of biomass
+    toxin_prod = 15 # 15 mmol of toxin produced per gram of producer biomass
 
     producer, resistant, susceptible = make_RPS_cobra_models_biomass_cost(growth_rate = growth_rate, toxin_cost = toxin_cost, resistance_cost = resistance_ost, toxin_prod = toxin_prod)
 
 ## Making COMETS models from `cobra` models
 
-Once `cobra` toy models have been constructed, they need to be converted into models that are recognizable by `cometspy`. Exactly how this is done will vary slightly for each type of model and its associated biological details.
+Once `cobrapy` toy models have been constructed, they need to be converted into models that are recognizable by `cometspy`. Exactly how this is done will vary slightly for each type of model and its associated biological details.
 
     P = c.model(producer) # create the comets model from the cobra producer
     R = c.model(resistant)
     S = c.model(susceptible)
 
-    P.obj_style = "MAX_OBJECTIVE_MIN_TOTAL" # set flux style, FBA (pFBA is also possible)
+    P.obj_style = "MAX_OBJECTIVE_MIN_TOTAL" # set flux style as FBA (pFBA is also possible)
     R.obj_style = "MAX_OBJECTIVE_MIN_TOTAL"
     S.obj_style = "MAX_OBJECTIVE_MIN_TOTAL"
 
@@ -147,19 +147,16 @@ Using these arguments will create a signal such that the growth rate of the susc
 
 ## Important notes on toxins and signalling 
 
-While this tutorial provides an example of toxin production, the `add_signal` function can accommodate a variety of approaches for modeling all types of signalling compounds. Manipulating the arguments of the function will determine the metabolic consequences of a signalling molecule for a focal model. The function has five main arguments:
+While this tutorial provides an example of toxin production, the `add_signal` function can accommodate a variety of approaches for modeling all types of signalling compounds. Manipulating the arguments of the function will determine the metabolic consequences of a signalling molecule for a focal model. The function has eight main arguments:
 
-    model.add_signal(id_of_reaction_altered, 
-    metabolite_exchange_id, 
-    reaction_bound_altered, 
-    functional_relationship, 
-    parms = [baseline_value, conc_where_effect_starts, slope_of_effect, conc_where_effect_ends])
+    model.add_signal(altered_reaction_id, metabolite_id, altered_bound, functional_relationship, 
+        parms = [baseline_value, conc_where_effect_starts, slope_of_effect, conc_where_effect_ends])
 
 The biological significance of these parameters is:
 
-* `id_of_reaction_altered` = the ID of the metabolic reaction whose bounds will be altered by the uptake of the signalling compound, generally the biomass reaction
-* `metabolite_exchange_id` = the ID of the signalling compound exchange reaction
-* `reaction_bound_altered` = the bound that is impacted by signalling compound uptake, either `'ub'` (upper bound, generally appropriate for toxins) or `'lb'` (lower bound, may be appropriate for upregulating certain reactions in response to the presence of a metabolite)
+* `ialtered_reaction_id` = the numeric ID of the metabolic reaction whose bounds will be altered by the uptake of the signalling compound, generally the biomass reaction
+* `metabolite_id` = the ID of the signalling compound exchange reaction
+* `altered_bound` = the bound that is impacted by signalling compound uptake, either `'ub'` (upper bound) or `'lb'` (lower bound)
 * `functional_relationship` = the shape of the functional relationship between the signalling compound concentration and the altered reaction bound, with three options available: `'linear'`, `'bounded_linear'`, and `'generalized_logistic'`
 * `baseline_value` = the default value of the flux through the altered reaction
 * `conc_where_effect_starts` = the concentration of the signalling compound where the effect on the reaction starts

@@ -34,7 +34,7 @@ sim.run()
 
 Users can view the results of liquid simulations by examining the dataframes `sim.total_biomass` and `sim.media`. Note that the maximum number of cycles provided here may not be sufficient for the simulation to reach stationary phase depending on the growth rate provided and other parameters. Users should look carefully at the results of their simulations to ensure that they have gathered the information intended. 
 
-In well-mixed simulations, five parameters are generally most consequential for the outcome of competition: the growth rate cost of toxin production, the toxin production rate, the total amount of carbon provided in the environment, the total size and relative genotype frequencies of the initial population, and the parameter `spaceWidth`. The `spaceWidth` parameter influences the concentration of the toxin (mmol / `spaceWidth`^3) and is therefore a critical value when modeling signalling compounds. Smaller `spaceWidth` values will result in higher effective concentrations of toxins or other signalling molecules. 
+In well-mixed simulations, five parameters are generally most consequential for the outcome of competition: the growth rate cost of toxin production, the toxin production rate, the total amount of carbon provided in the environment, the total size and relative genotype frequencies of the initial population, and the parameter `spaceWidth`. The `spaceWidth` parameter influences the concentration of the toxin and is therefore an important value when modeling signalling compounds. Smaller `spaceWidth` values will result in higher effective concentrations of toxins or other signalling molecules. 
 
 ## Spatially-structured environments
 
@@ -83,25 +83,9 @@ Once the function is defined and the `spatial_seed` for the simulation has been 
 
 It is generally desirable to save the starting locations of colonies in order to do any spatially-explicity analyses later. There are many approaches to accomplish this. For example, the strain genotype and x,y coordinates can be assigned to a dataframe and exported as a csv. Users should also consider saving the `spatial_seed` value set for the generation of starting locations in order to make their analyses reproducible. 
 
-    spatial_data = pd.DataFrame(columns = ["strain", "x", "y"]) # initialize dataframe
-    producer_data = pd.DataFrame({"strain" : "producer",
-                             "x" : [x[0] for x in producer_locs],
-                             "y" : [x[1] for x in producer_locs]})
-    resistant_data = pd.DataFrame({"strain" : "resistant",
-                             "x" : [x[0] for x in resistant_locs],
-                             "y" : [x[1] for x in resistant_locs]})
-    susceptible_data = pd.DataFrame({"strain" : "susceptible",
-                             "x" : [x[0] for x in susceptible_locs],
-                             "y" : [x[1] for x in susceptible_locs]})
-    spatial_data = spatial_data.append(producer_data, 
-                                   ignore_index = True).append(resistant_data, 
-                                                               ignore_index = True).append(susceptible_data, ignore_index = True) # concatenate data frame
-    spatial_data["spatial_seed"] = spatial_seed # save spatial seed for locations
-    spatial_data.to_csv("file_name.csv") # save as csv
-
 ### Tracking the biomass of individual colonies
 
-One common challenge of spatially-structured simulations is that the default settings do not accommodate tracking the biomass of individual colonies. Instead, simulations can track the total biomass of each model type (susceptible, producer, resistant cheater) and the biomass of each model type at each x,y coordinate. Because biomass diffuses (albeit at a slow rate) many x,y locations in a grid will have a non-zero biomass value by the end of a simulation, and while the type of model that that biomass corresponds to can be discerned, which initial colony the biomass should be counted toward is not possible to ascertain in most cases. 
+One common challenge of spatially-structured simulations is that the default settings do not accommodate tracking the biomass of individual colonies. Instead, simulations can track the total biomass of each model type (susceptible, producer, resistant cheater) and the biomass of each model type at each x,y coordinate. Because biomass diffuses, many x,y locations in a grid will have a non-zero biomass value by the end of a simulation, and while the type of model that that biomass corresponds to can be discerned, which initial colony the biomass should be counted toward is not possible to ascertain in most cases. 
 
 There are a few approaches to circumvent this limitation. The most straightforward involves assigning a unique metabolic model to each location, so that the total biomass file reflects the growth of every individual colony. This can be accomplished by making multiple individual COMETS models for all genotypes of interest.
 
@@ -139,7 +123,7 @@ There are a few approaches to circumvent this limitation. The most straightforwa
         R.initial_pop = [loc[0], loc[1], initial_biomass]
         resistant_models.append(R)
 
-This will generate a list of producer models with the associated x,y coordinate and initial biomass for each colony. For success, any specific changes that are required for converting the `cobra` models into `cometspy` models should be implemented **within** the assignment loops, as seen above. These models can then be concatenated into a longer list prior to the start of simulations in order to create the desired layout. 
+This will generate a list of `cometspy` producer or resistant models with the associated x,y coordinate and initial biomass for each colony. These models can then be concatenated into a longer list prior to the start of simulations in order to create the desired layout. 
 
 ```
  l = c.layout(producer_models + resistant_models)
@@ -187,7 +171,7 @@ Users can examine the outputs of `sim.total_biomass` and `sim.media` to evaluate
 
 ### Troubleshooting appropriate simulation durations
 
-For successful spatial simulations, users should be attentive to the timestep, rate of diffusion, and total simulation duration. 
+For successful spatial simulations, users should be attentive to the timestep (`timeStep` or `dt`), the rate of diffusion (`defaultDiffConst` and `numDiffPerStep`), and total simulation duration (`maxCycles`). 
 
 To test that the timestep `dt` (`p.set_param('timeStep', dt)`) is appropriate, users should consult the `sim.run_ouput` following an initial short simulation. `run_ouput` will provide information about the diffusion constants, in particular raising a warning if the diffusion constants are unstable. The file will also suggest the appropriate timestep to fix the problem. By calculating `dt` with the `spaceWidth` and `metabolite_diff` variables, users should be able to largely offset this issue. However, it is worth verifying before running computationally expensive simulations with a higher number of `maxCycles` in order to make sure that estimations are as robust as possible. 
 

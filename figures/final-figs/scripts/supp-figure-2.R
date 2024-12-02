@@ -96,7 +96,7 @@ strep_bcgs <- strep %>% dplyr::select(species_id, predicted_d) %>% unique() %>%
   filter(present == 1) %>%
   pull(type) %>% unique()
 
-bootstrap_number <- 1000
+bootstrap_number <- 10000
 
 # significant models in original data
 sig <- c("hserlactone", "aminocoumarin", "RRE-containing",
