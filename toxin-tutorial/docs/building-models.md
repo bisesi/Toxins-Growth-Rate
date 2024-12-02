@@ -149,12 +149,11 @@ Using these arguments will create a signal such that the growth rate of the susc
 
 While this tutorial provides an example of toxin production, the `add_signal` function can accommodate a variety of approaches for modeling all types of signalling compounds. Manipulating the arguments of the function will determine the metabolic consequences of a signalling molecule for a focal model. The function has eight main arguments:
 
-    model.add_signal(altered_reaction_id, metabolite_id, altered_bound, functional_relationship, 
-        parms = [baseline_value, conc_where_effect_starts, slope_of_effect, conc_where_effect_ends])
+    model.add_signal(altered_reaction_id, metabolite_id, altered_bound, functional_relationship, parms = [baseline_value, conc_where_effect_starts, slope_of_effect, conc_where_effect_ends])
 
 The biological significance of these parameters is:
 
-* `ialtered_reaction_id` = the numeric ID of the metabolic reaction whose bounds will be altered by the uptake of the signalling compound, generally the biomass reaction
+* `altered_reaction_id` = the numeric ID of the metabolic reaction whose bounds will be altered by the uptake of the signalling compound, generally the biomass reaction
 * `metabolite_id` = the ID of the signalling compound exchange reaction
 * `altered_bound` = the bound that is impacted by signalling compound uptake, either `'ub'` (upper bound) or `'lb'` (lower bound)
 * `functional_relationship` = the shape of the functional relationship between the signalling compound concentration and the altered reaction bound, with three options available: `'linear'`, `'bounded_linear'`, and `'generalized_logistic'`
