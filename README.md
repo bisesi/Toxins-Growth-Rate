@@ -1,6 +1,6 @@
 # The strength of selection for costly toxin production increases with growth rate
 
-[Bacterial ecology](https://github.com/bisesi/Toxins-Growth-Rate/blob/main/figures/final-figs/imgs/figure-1-final.png)
+![Bacterial ecology](https://github.com/bisesi/Toxins-Growth-Rate/blob/main/figures/final-figs/imgs/figure-1-final.png)
 
 ### Authors:
 
