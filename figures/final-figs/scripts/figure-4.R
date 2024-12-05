@@ -4,11 +4,9 @@
 
 #load packages
 library("tidyverse")
-library("stringdist")
 library("cowplot")
 library("tidytext")
-library("MASS")
-library("emmeans")
+library("ggtext")
 
 # load data
 rocha <- read_csv(here::here("bioinformatics-data", "rocha", "full_growth_toxin_dataset_rocha.csv")) %>%

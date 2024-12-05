@@ -4,9 +4,9 @@
 
 #load packages
 library("tidyverse")
-library("stringdist")
 library("cowplot")
 library("tidytext")
+library("ggtext")
 
 # load rocha data sets, note that 6 genomes do not have toxin data due to issues with antismash
 rocha <- read_csv(here::here("bioinformatics-data", "rocha", "full_growth_toxin_dataset_rocha.csv")) %>%

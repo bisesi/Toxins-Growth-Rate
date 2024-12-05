@@ -4,7 +4,6 @@
 
 #load packages
 library("tidyverse")
-library("stringdist")
 library("cowplot")
 library("tidytext")
 library("ggtext")
@@ -80,7 +79,7 @@ toxins <- c("RiPP-like", "NRPS", "NRPS-like", "butyrolactone", "cyanobactin",
             "lanthipeptide-class-ii", "lanthipeptide-class-iii", "lanthipeptide-class-iv")
 
 robust <- c("NRPS", "RRE-containing", "RiPP-like", "aminoglycoside", "arylpolyene",
-            "butrylactone", "homoserine lactone", "indole", "lanthipeptide-class-iv", "linear azol(in)e",
+            "butyrolactone", "homoserine lactone", "indole", "lanthipeptide-class-iv", "linear azol(in)e",
             "melanin", "non-alpha poly-amino acids", "other", "phosphoglycolipid", "ranthipeptide",
             "thiopeptide", "transAT-PKS-like", "type I PKS", "type II PKS")
 # part B

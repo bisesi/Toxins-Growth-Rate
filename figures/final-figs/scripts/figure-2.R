@@ -4,13 +4,8 @@
 
 #load packages
 library("tidyverse")
-library("stringdist")
 library("cowplot")
 library("tidytext")
-library("reshape2")
-library("scales")
-library("deldir")
-library("ggforce")
 
 #source functions
 source(here::here("functions", "functions.R"))

@@ -178,9 +178,6 @@ partA <- rbind(adjusted_models_calcnorm %>% mutate(distribution = "normal"),
   ggplot(aes(n)) + geom_histogram(binwidth = 1) + facet_wrap(~distribution) + theme_bw(base_size = 16) +
   xlab("# of significant models") + ylab("# of bootstrap replicates")
 
-# calc norm - mean 26.5, median 26, max 32, min 20
-# uni - mean 26.6, median 27, max 34, min 21
-
 # part B - 
 per_group <- rbind(adjusted_models_calcnorm %>% mutate(distribution = "normal"),
                    adjusted_models_uniform %>% mutate(distribution = "uniform")) %>%

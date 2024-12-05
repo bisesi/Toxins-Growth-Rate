@@ -4,13 +4,8 @@
 
 #load packages
 library("tidyverse")
-library("stringdist")
 library("cowplot")
 library("tidytext")
-library("reshape2")
-library("scales")
-library("deldir")
-library("ggforce")
 
 #source functions
 source(here::here("functions", "functions.R"))
@@ -27,7 +22,7 @@ partA_spatial <- locations %>%
         strip.background = element_blank(), axis.ticks = element_blank(), strip.text.y = element_blank())
 
 # part B - toxin localization
-media <- read_csv(here::here("toxin-simulations", "simulations_spatial", "figure1", "metabolites_figure1_bound1.csv"))
+media <- read_csv(here::here("toxin-simulations", "simulations_spatial", "figure1", "metabolites_figure1.csv"))
 
 metabolite_variation <- media %>% group_by(metabolite, growth_rate, spatial_seed, cycle) %>%
   filter(cycle > 1) %>%

@@ -3,10 +3,10 @@
 # levy correlations
 
 library("tidyverse")
-library("boot")
-library("stringdist")
 library("cowplot")
 library("tidytext")
+library("ggtext")
+library("boot")
 library("mosaic")
 
 #load growth rate data

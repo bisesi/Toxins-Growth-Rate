@@ -11,7 +11,7 @@ conda activate antismash
 
 # run antismash on everything
 for file in *.gbff; do
-	antismash $file
+	antismash $file --genefinding-tool prodigal
 done
 
 #close conda

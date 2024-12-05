@@ -4,7 +4,6 @@
 
 #load packages
 library("tidyverse")
-library("stringdist")
 library("cowplot")
 library("tidytext")
 library("ggtext")
