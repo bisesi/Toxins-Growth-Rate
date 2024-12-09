@@ -5,14 +5,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>Building models - COMETS Toxin Implementation</title>
+    <title>Building models with signals - COMETS Toxin Implementation</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Building models";
+        var mkdocs_page_name = "Building models with signals";
         var mkdocs_page_input_path = "building-models.md";
         var mkdocs_page_url = null;
       </script>
@@ -52,17 +52,21 @@
               </ul>
               <p class="caption"><span class="caption-text">Toxin and Signaling User Guide</span></p>
               <ul class="current">
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Building models</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Building models with signals</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#making-toy-models-using-cobra">Making toy models using cobra</a>
+    <li class="toctree-l2"><a class="reference internal" href="#adding-new-signals-to-existing-models">Adding new signals to existing models</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#making-comets-models-from-cobra-models">Making COMETS models from cobra models</a>
+    <li class="toctree-l2"><a class="reference internal" href="#turning-existing-metabolites-into-signaling-compounds">Turning existing metabolites into signaling compounds</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#important-notes-on-toxins-and-signalling">Important notes on toxins and signalling</a>
+    <li class="toctree-l2"><a class="reference internal" href="#making-toy-producer-models-using-cobra">Making toy producer models using cobra</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#making-comets-models-from-cobra-toy-models">Making COMETS models from cobra toy models</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#details-on-the-add_signal-function">Details on the add_signal function</a>
     </li>
     </ul>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../spatial-simulations/">Running simulations</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../spatial-simulations/">Running simulations with signals</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">About</span></p>
@@ -85,7 +89,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">Toxin and Signaling User Guide</li>
-      <li class="breadcrumb-item active">Building models</li>
+      <li class="breadcrumb-item active">Building models with signals</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -94,10 +98,88 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="building-metabolic-models-with-signalling-compound-production-or-response">Building metabolic models with signalling compound production or response</h1>
-<p>The first step to running simulations with signalling compounds is building metabolic models that can accommodate the production of or response to these compounds. We will detail the model building process used in our paper, although this protocol can also be adapted to make changes to existing models rather than developing toy models. </p>
-<h2 id="making-toy-models-using-cobra">Making toy models using <code>cobra</code></h2>
-<p>The most straightforward way to generate toy metabolic models is to create a function that defines the desired models using a variety of functions and object types from <code>cobrapy</code>.</p>
+                <h1 id="building-metabolic-models-with-signaling-compound-production-or-response">Building metabolic models with signaling compound production or response</h1>
+<p>The first step to running simulations with signaling compounds is building metabolic models that can accommodate the production of or response to these compounds. We will detail several model-building processes, including the approach taken in our paper.</p>
+<h2 id="adding-new-signals-to-existing-models">Adding new signals to existing models</h2>
+<p>Many users will be most interested in adding the signaling capability to existing genome-scale metabolic models. We will walk through this process by using an existing model as an example.</p>
+<pre><code>E_cobra = cobra.io.load_model('textbook') # basic IJO1366 model
+</code></pre>
+<p>As with any COMETS simulation, <code>cobra</code> models need to be converted to COMETS models prior to usage. This is a straightforward process in the case of existing models.</p>
+<pre><code>E = c.model(E_cobra)
+E.open_exchanges() # ensures that models can take up any nutrients provided in the COMETS media
+E.obj_style = "MAX_OBJECTIVE_MIN_TOTAL" # type of flux solution
+</code></pre>
+<p>Setting up a COMETS simulation also involves specifying the initial populations, creating a layout, and seeding the media with the relevant components. More information about this process is available in the COMETS documentation, as many of the specific details will vary significantly based on the desires of the user.</p>
+<pre><code>E.initial_pop = [0, 0, 1.e-7] # the first two values are x, y coordinates, third is gDW
+layout = c.layout(E)
+E_media = {'co2_e': 1000.0,
+         'h_e': 1000.0,
+         'h2o_e': 1000.0,
+         'nh4_e': 1000.0,
+         'o2_e': 1000.0,
+         'pi_e': 1000.0}
+for key, value in E_media.items():
+    layout.set_specific_metabolite(key, value)
+layout.set_specific_metabolite("glc__D_e", 5e-4)
+</code></pre>
+<p>Once users have decided on many of the core parameters for their simulations, they may want to add a signaling compound. In this example, we will consider an undegradable toxin whose purpose is to reduce the growth of <em>E. coli</em> in a dose-dependent way. This toxin will exist in the media from the outset of simulations. </p>
+<p>To make a toxin, we will assign a signal to the <em>E. coli</em> model that alters a reaction in that model based upon the concentration of an environmental metabolite. We will make a new metabolite for this purpose, although this isn't strictly necessary, as we will see later. </p>
+<p>When setting a new metabolite as a toxin or signaling compound, the affected model will need to be altered to have an exchange reaction for that metabolite. We will use functions from <code>cobra</code> to do that.</p>
+<pre><code>from cobra import Metabolite, Reaction
+toxin_e = Metabolite(id = "toxin_e", compartment = "e") # create a toxin metabolite in the extracellular environment
+EX_toxin_e = Reaction(id = "EX_toxin_e", lower_bound = -1000, upper_bound = 1000) # create an exchange reaction for the toxin 
+EX_toxin_e.add_metabolites({toxin_e: -1}) # add toxin metabolite and stoichiometric coefficient, which in this case is -1
+E_cobra.add_reactions([EX_toxin_e]) # add the exchange reaction to E coli
+</code></pre>
+<p>Now, the <em>E. coli</em> metabolic model can take up the toxin metabolite, which is essential for its sensitivity to the compound. However, we have yet to define how the compound will impact the growth rate or survival of <em>E. coli</em>, which we will do with the <code>add_signal</code> function. This is the essential innovation of this paper, and the arguments of the function are discussed in greater detail later in the tutorial. Here, we are interested in defining a toxin that will impact the growth rate of <em>E. coli</em> by reducing the upper bound on biomass without allowing biomass production to become negative. These changes need to be made to the COMETS version of the model.</p>
+<pre><code>response = E.reactions.loc[E.reactions.REACTION_NAMES == "Biomass_Ecoli_core",:].ID.item() # reaction altered by the toxin
+signal_exch = E.reactions.loc[E.reactions.REACTION_NAMES == "EX_toxin_e",:].EXCH_IND.item() # exch_id of the toxin
+E.add_signal(response, signal_exch, 'ub', 'bounded_linear', parms = [1,0.2,-0.2,5.2])
+</code></pre>
+<p>The biomass of <em>E. coli</em> will now be reduced linearly based on the extracellular concentration of the toxin, with the effect starting at a concentration of 0.2mmol and saturating (i.e. reducing <em>E. coli</em>'s growth rate to 0) at a concentration of 5.2 mmol, with a slope of -0.2. These specific parameters can be changed to model different functional relationships, and more details about these values - and how to choose them - are discussed later.</p>
+<p>We are now prepared to run a simulation with an <em>E. coli</em> model that will be sensitive to a toxin. In this case, we will need to add that toxin into the extracellular environment as an additional media component prior to running our simulation.</p>
+<pre><code>toxin_mmol = 0.6 # set the concentration of toxin in the environment
+layout.set_specific_metabolite('toxin_e', toxin_mmol) # add toxin into the environment
+</code></pre>
+<h2 id="turning-existing-metabolites-into-signaling-compounds">Turning existing metabolites into signaling compounds</h2>
+<p>In some cases, instead of creating an entirely new metabolite that serves as a signaling compound, users will want models to respond to existing metabolites. We detail that process here, based on the textbook <em>E. coli</em> model.</p>
+<pre><code>model = cobra.io.load_model('textbook')
+</code></pre>
+<p>We can consider a situation where the extracellular build-up of the existing metabolite acetaldehyde (<code>EX_acald_e</code>) reduces the function of phosphofructokinase (<code>PFK</code>). The basics of the model set up will not change much from our previous example.</p>
+<pre><code># create COMETS model
+m = c.model(model)
+m.open_exchanges()
+m.initial_pop = [[0, 0, 0.01]]
+
+# add signaling relationship without adding a new metabolite
+PFK_num = m.reactions.loc[m.reactions.REACTION_NAMES == "PFK", "ID"].values[0]
+acald_exch_id = m.reactions.loc[m.reactions.REACTION_NAMES == "EX_acald_e", "EXCH_IND"].values[0]
+</code></pre>
+<p>In this case, we will need to be more sensitive to the maximum flux through the <code>PFK</code> reaction in order to appropriately reduce it through the build up of acetaldehyde. To find the maximum flux, we can solve using the <code>cobra</code> model:</p>
+<pre><code>sol = model.optimize()
+max_ub = sol.fluxes["PFK"]
+print(max_ub)
+intercept = max_ub
+</code></pre>
+<p>This value will be useful for creating our final signal. Because we are reducing the function of a metabolic reaction rather than growth rate, we will also change the linear relationship; the flux through <code>PFK</code> can be negative, so we will use the <code>linear</code> function_relationship rather than <code>bounded_linear</code>:</p>
+<pre><code>slope = -1000 # this is a fairly arbitrary relationship for the slope between acetaldehyde concentration and flux through PFK
+m.add_signal(PFK_num, acald_exch_id, "ub", "linear", [slope, max_ub])
+</code></pre>
+<p>Here, we have defined a signal such that the maximum flux through PFK <code>max_ub</code> will reduce linearly with a slope of -1000 as the concentration of acetaldehyde increases. We can run our simulations in a couple of ways. First, as before, we will observe the consequences of a constant concentration of extracellular signaling compound.</p>
+<pre><code>l = c.layout(m)
+l.set_specific_metabolite("glc__D_e", 5.)
+l.set_specific_metabolite("nh4_e", 1000.)
+l.set_specific_metabolite("pi_e", 1000.)
+l.set_specific_metabolite("acald_e", 0.25)
+</code></pre>
+<p>Using this approach, our signaling compound is present in the media at an initial concentration that will be reduced over simulation time as it is taken up by <em>E. coli</em>. </p>
+<p>We may also be interested in a signaling compound that is added dynamically, whether to replicate pulses by a producer or other scenario. The simplest way to do this is by using several available tools in COMETS, one of which is the ability to "refresh" compounds, adding a certain mmol of compound per spatial box per hour. </p>
+<pre><code>l.set_specific_metabolite("acald_e", 0.) # reset
+l.set_specific_refresh("acald_e", 0.25)
+</code></pre>
+<h2 id="making-toy-producer-models-using-cobra">Making toy producer models using <code>cobra</code></h2>
+<p>Finally, users may want to make toy models, such as the ones used in our publication. Functionally, these models will not significantly differ from existing models. The basic premise of their construction is identical to the previous examples. Their benefit is that they are more easily manipulated, since every exchange and reaction is chosen and specifically defined by the user, and they are fractionally less computationally expensive due to having only a handful of fluxes. </p>
+<p>The most straightforward way to generate toy metabolic models is to create a function that defines the desired models using a variety of functions and object types from <code>cobrapy</code>. So far, we have only seen how to add signaling compounds that exist in the extracellular environment and impact a strain growing in isolation. This function provides a way to create a metabolic model that will produce the signaling compound. This same basic process can be applied to existing models, if users would like to add toxin production to existing models. </p>
 <pre><code>def make_RPS_cobra_models_biomass_cost(growth_rate = 1., toxin_cost = 0.02, resistance_cost = 0.0, toxin_prod = 1.):
     # create metabolites for carbon and toxin
     carbon_e = Metabolite(id = "carbon_e",
@@ -162,11 +244,11 @@
     return((producer, resistant, susceptible))
 </code></pre>
 <p>This function takes four arguments (growth rate, the cost of toxin production, the cost of toxin resistance, and the amount of toxin produced per gram of biomass produced) to create three model genotypes (susceptibles, toxin producers, and resistant cheaters). Susceptible models have four metabolic reactions (carbon exchange, carbon transport, biomass production, and extracellular to intracellular toxin exchange), producers have five metabolic reactions (carbon exchange, carbon transport, biomass production, intracellular to extracellular toxin exchange, and toxin transport), and resistant cheaters have three metabolic reactions (carbon exchange, carbon transfer, and biomass production). </p>
-<p>When manipulating this function to generate toy models, particular attention should be paid to the construction of the biomass reactions, which will allow users to change the relative growth rates of each model (the default here is that they all have the same growth rate, aside from minimal penalities for the cost of toxin production or resistance) along with a variety of other assumptions. Here, toxin production is tied to producer biomass and carbon uptake:</p>
+<p>When manipulating this function to generate toy models, particular attention should be paid to the construction of the biomass reactions, which will allow users to change the relative growth rates of each model (the default here is that they all have the same growth rate, aside from minimal penalities for the cost of toxin production or resistance) along with a variety of other assumptions. Here, we have tied toxin production to producer biomass and carbon uptake, which differs from previous examples, where signaling compounds already existed in the media:</p>
 <pre><code>Biomass_producer.add_metabolites({carbon_c: -(1. + toxin_cost + resistance_cost),
                                      toxin_c: toxin_prod * (1. + toxin_cost + resistance_cost)})
 </code></pre>
-<p>This setup defines toxin production in such a way that toxins are only created during growth and that the costs associated with toxin production (<code>toxin_cost</code>) or resistance to toxin (<code>resistance_cost</code>) vary directly with growth rate. It also establishes that toxin production is directly proportional to carbon uptake, regardless of growth rate, although the amount of toxin created per unit of carbon can be changed (<code>toxin_prod</code>). If desired, these constraints can be altered to fit the appropriate biological details of the signalling compounds being modeled. </p>
+<p>This setup defines toxin production in such a way that toxins are only created during growth and that the costs associated with toxin production (<code>toxin_cost</code>) or resistance to toxin (<code>resistance_cost</code>) vary directly with growth rate. It also establishes that toxin production is directly proportional to carbon uptake, regardless of growth rate, although the amount of toxin created per unit of carbon can be changed (<code>toxin_prod</code>). If desired, users can alter these constraints to fit the appropriate biological details of the signaling compounds being modeled. </p>
 <p>Notably, the function defined above also penalizes the biomass production of resistant cheaters to impose a cost of toxin resistance (<code>resistance_cost</code>), seen here:</p>
 <pre><code>Biomass_resistant.add_metabolites({carbon_c: -(1. + resistance_cost)})
 </code></pre>
@@ -178,8 +260,8 @@ toxin_prod = 15 # 15 mmol of toxin produced per gram of producer biomass
 
 producer, resistant, susceptible = make_RPS_cobra_models_biomass_cost(growth_rate = growth_rate, toxin_cost = toxin_cost, resistance_cost = resistance_ost, toxin_prod = toxin_prod)
 </code></pre>
-<h2 id="making-comets-models-from-cobra-models">Making COMETS models from <code>cobra</code> models</h2>
-<p>Once <code>cobrapy</code> toy models have been constructed, they need to be converted into models that are recognizable by <code>cometspy</code>. Exactly how this is done will vary slightly for each type of model and its associated biological details.</p>
+<h2 id="making-comets-models-from-cobra-toy-models">Making COMETS models from <code>cobra</code> toy models</h2>
+<p>As we have already shown, once <code>cobrapy</code> toy models have been constructed, they need to be converted into models that are recognizable by <code>cometspy</code>. Exactly how this is done will vary slightly for each type of model and its associated biological details, and is somewhat more complicated when using toy models than pre-existing ones.</p>
 <pre><code>P = c.model(producer) # create the comets model from the cobra producer
 R = c.model(resistant)
 S = c.model(susceptible)
@@ -188,7 +270,7 @@ P.obj_style = "MAX_OBJECTIVE_MIN_TOTAL" # set flux style as FBA (pFBA is also po
 R.obj_style = "MAX_OBJECTIVE_MIN_TOTAL"
 S.obj_style = "MAX_OBJECTIVE_MIN_TOTAL"
 </code></pre>
-<p>During the initial conversion, COMETS will erroneously assume that the biomass equation is an exchange for the susceptible and resistant models, because the reactions are unbalanced (unlike the producer, for which carbon uptake is balanced by toxin production). That will need to be fixed first. </p>
+<p>Diverging from curated models, when using a toy model, during the initial conversion, COMETS will erroneously assume that the biomass equation is an exchange for the susceptible and resistant models, because the reactions are unbalanced (unlike the producer, for which carbon uptake is balanced by toxin production). That will need to be fixed first. </p>
 <pre><code># tell COMETS that the biomass reaction is not an exchange
 R.reactions.loc[R.reactions.REACTION_NAMES == "Biomass", "EXCH"] = False # set false
 index = R.reactions.loc[R.reactions.REACTION_NAMES == "Biomass", "EXCH_IND"].values[0]
@@ -200,12 +282,7 @@ index = S.reactions.loc[S.reactions.REACTION_NAMES == "Biomass", "EXCH_IND"].val
 S.reactions.loc[S.reactions.REACTION_NAMES == "Biomass", "EXCH_IND"] = 0
 S.reactions.loc[S.reactions.EXCH_IND &gt; index, "EXCH_IND"] -= 1
 </code></pre>
-<p>Next, we will need to add the signalling capability to the susceptible model, so that the uptake of toxin results in a proportionate reduction in growth rate. This can be done using a function from <code>cometspy</code> called <code>add_signal</code>. </p>
-<p>To add a signal, first retrieve the ID of the biomass and toxin exchange reactions, as these are important arguments for the <code>add_signal</code> function.</p>
-<pre><code>biomass_id = S.reactions.loc[S.reactions.REACTION_NAMES == &quot;Biomass&quot;, &quot;ID&quot;].values[0]
-toxin_exch_id = S.reactions.loc[S.reactions.REACTION_NAMES == &quot;EX_toxin_e&quot;, &quot;EXCH_IND&quot;].values[0]
-</code></pre>
-<p>The <code>add_signal</code> function also requires a baseline growth rate in the absence of the signalling molecule, a threshold concentration of the signaling molecule where the effect on growth rate starts, the slope of the effect on growth rate, and the concentration of the signaling molecule where the effect on growth rate saturates. Adding a signal to the susceptible model will therefore look something like this:</p>
+<p>Next, we will need to add the signaling capability to the susceptible model, so that the uptake of toxin results in a proportionate reduction in growth rate. </p>
 <pre><code>gr_absense_of_toxin = growth_rate # baseline growth rate
 toxin_conc_where_effect_starts = 0. # threshold concentration where effect starts
 slope_of_toxin_effect = -growth_rate # slope of the relationship betwen toxin concentration and growth rate
@@ -217,28 +294,50 @@ S.add_signal(biomass_id, toxin_exch_id, 'ub', add_signal_parameter,
                       slope_of_toxin_effect,
                      toxin_conc_where_effect_saturates])
 </code></pre>
-<p>Using these arguments will create a signal such that the growth rate of the susceptible model will reduce in proportion to the concentration of toxin in the environment, with the effect on growth rate occurring whenever toxin is present and saturating when the toxin concentration reaches 1. The <code>add_signal_parameter</code> tunes the shape of relationship between toxin concentration and biomass. Here, the <code>"bounded_linear"</code> argument ensures that the upper bound of growth rate does not become negative. </p>
-<h2 id="important-notes-on-toxins-and-signalling">Important notes on toxins and signalling</h2>
-<p>While this tutorial provides an example of toxin production, the <code>add_signal</code> function can accommodate a variety of approaches for modeling all types of signalling compounds. Manipulating the arguments of the function will determine the metabolic consequences of a signalling molecule for a focal model. The function has eight main arguments:</p>
-<pre><code>model.add_signal(altered_reaction_id, metabolite_id, altered_bound, functional_relationship, parms = [baseline_value, conc_where_effect_starts, slope_of_effect, conc_where_effect_ends])
+<p>Using these arguments will create a signal such that the growth rate of the susceptible model will reduce linearly in proportion to the concentration of toxin in the environment, with the effect on growth rate occurring whenever toxin is present and saturating when the toxin concentration reaches 1. Here, as we have previously seen, the `"bounded_linear"' argument ensures that the upper bound of growth rate does not become negative. </p>
+<h2 id="details-on-the-add_signal-function">Details on the <code>add_signal</code> function</h2>
+<p>While this tutorial provides several examples of toxic metabolites, the <code>add_signal</code> function can accommodate a variety of approaches for modeling all types of signaling compounds. Manipulating the arguments of the function will determine the metabolic consequences of a signaling molecule for a focal model. The function has five main arguments:</p>
+<pre><code>model.add_signal(altered_reaction_id, metabolite_id, altered_bound, functional_relationship, [parms])
 </code></pre>
 <p>The biological significance of these parameters is:</p>
 <ul>
-<li><code>altered_reaction_id</code> = the numeric ID of the metabolic reaction whose bounds will be altered by the uptake of the signalling compound, generally the biomass reaction</li>
-<li><code>metabolite_id</code> = the ID of the signalling compound exchange reaction</li>
-<li><code>altered_bound</code> = the bound that is impacted by signalling compound uptake, either <code>'ub'</code> (upper bound) or <code>'lb'</code> (lower bound)</li>
-<li><code>functional_relationship</code> = the shape of the functional relationship between the signalling compound concentration and the altered reaction bound, with three options available: <code>'linear'</code>, <code>'bounded_linear'</code>, and <code>'generalized_logistic'</code></li>
-<li><code>baseline_value</code> = the default value of the flux through the altered reaction</li>
-<li><code>conc_where_effect_starts</code> = the concentration of the signalling compound where the effect on the reaction starts</li>
-<li><code>slope_of_effect</code> = the slope of the functional relationship between the signalling compound concentration and the altered reaction bound</li>
-<li><code>conc_where_effect_ends</code> = the concentration of the signalling compound where the effect on the reaction saturates</li>
+<li><code>altered_reaction_id</code>: The numeric ID of the metabolic reaction whose bounds will be altered by the uptake of the signaling compound. If modifying the maximum growth rate, the biomass growth objective should be used. When modeling -cidal toxins, the argument <code>'death'</code> can be used instead.</li>
+<li><code>metabolite_id</code>: The index of the exchange reaction for the signaling metabolite. Models sense the external environment based on exchange reactions, which is why a reaction is specified rather than a metabolite. This value should therefore be numeric and correspond to the <code>EXCH_IND</code> of the appropriate metabolite.</li>
+<li><code>altered_bound</code>: The reaction bound that is impacted by uptake of the signaling compound, either <code>'ub'</code> (upper bound) or <code>'lb'</code> (lower bound). Generally when modeling toxins that impact growth rate, <code>ub</code> should be used, although <code>lb</code> may be appropriate if users are interested in using a signaling compound to upregulate some metabolite process.</li>
+<li><code>functional_relationship</code>: The signal-response curve detailing the shape of the functional relationship between the signaling compound concentration and the altered reaction bound. Three options are available: <code>'linear'</code>, <code>'bounded_linear'</code>, and <code>'generalized_logistic'</code>. <code>linear</code> and <code>bounded_linear</code> will model a fixed effect. The choice of functional relationship will determine the list of inputs to the final argument, <code>parms</code>.</li>
+<li><code>parms</code>: The parameters for the functional relationship between signaling compound concentration and the reaction bound. The number of parameters and their meaning will vary based on the functional relationship chosen. The appropriate parameters should be included as a list, as indicated by the brackets.</li>
+</ul>
+<p>If the functional relationship <code>linear</code> is chosen, two parameters are necessary for the <code>parms</code> argument, such that <code>parms = [slope, bound]</code>:</p>
+<ul>
+<li><code>slope</code>: The slope of the linear relationship between the concentration of the signaling compound and the bound of the altered reaction.</li>
+<li><code>bound</code>: The maximum (or minimum, if using <code>lb</code>) amount of flux that the altered reaction (<code>altered_reaction_id</code>) can carry in the absence of toxin or signaling compound. </li>
+</ul>
+<p>If the functional relationship <code>bounded_linear</code> is chosen, four parameters are necessary for the <code>parms</code> argument, such that <code>parms = [baseline_value, conc_where_effect_starts, slope, conc_where_effect_saturates]</code>. The same basic formulation applies for <code>generalized_logistic</code> as well:</p>
+<ul>
+<li><code>baseline_value</code>: The default response of the altered reaction at concentrations below the critical threshold <code>conc_where_effect_starts</code>. </li>
+<li><code>conc_where_effect_starts</code>: The signaling compound concentration at which the altered reaction begins to change. </li>
+<li><code>slope</code>: The slope of the linear relationship between the concentration of the signaling compound and the bound of the altered reaction. For <code>generalized_logistic</code> the slope of the curve between the upper and lower response limits of the dose-response curve.</li>
+<li><code>conc_where_effect_saturates</code>: The signaling compound concentration at which the reduction of the altered reaction saturates. </li>
+</ul>
+<p>Note that the <code>bounded_linear</code> relationship is preferable over <code>linear</code> when users would like to prevent a reaction like biomass from becoming negative as a result of toxin. <code>generalized_logistic</code> will generally provide the most biologically-realistic relationship between model reactions and signaling compound concentrations, although there are many situations in which <code>bounded_linear</code> and <code>generalized_logistic</code> will not give qualitatively divergent results. </p>
+<p>Finally, users may chose a special case of signaling with <code>add_multitoxin</code>. The function adds a signaling relationship for multiple toxins, relying on a Hill-function reduction of (typically) the upper bound of a reaction. Users will find this function most useful when considering multiple, additively-functioning signals. The function arguments are very similar to the <code>add_signal</code> function, though multiple exchange IDs, along with Km values and Hill coefficients, are required. </p>
+<pre><code>model.add_multioxin(altered_reaction_id, [exch_ids], bound, vmax, [kms], [hills])
+</code></pre>
+<p>The parameters here are:</p>
+<ul>
+<li><code>altered_reaction_id</code>: The numeric ID of the metabolic reaction whose bounds will be altered by the uptake of the signaling compounds.</li>
+<li><code>exch_ids</code>: A list of exchange indexes for the signaling metabolite. </li>
+<li><code>bound</code>: The bound of the reaction to be altered, either <code>ub</code> or <code>lb</code>.</li>
+<li><code>vmax</code>: The maximum bound of the reaction in the absence of signals.</li>
+<li><code>kms</code>: A list of Km values (half-saturation concentrations) for the signals being incorporated.</li>
+<li><code>hills</code>: A list of Hill coefficients for all the signals being incorporated.</li>
 </ul>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
         <a href="../comets-installation/" class="btn btn-neutral float-left" title="COMETS Installation"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../spatial-simulations/" class="btn btn-neutral float-right" title="Running simulations">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../spatial-simulations/" class="btn btn-neutral float-right" title="Running simulations with signals">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>

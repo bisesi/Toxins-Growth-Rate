@@ -5,14 +5,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>Running simulations - COMETS Toxin Implementation</title>
+    <title>Running simulations with signals - COMETS Toxin Implementation</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Running simulations";
+        var mkdocs_page_name = "Running simulations with signals";
         var mkdocs_page_input_path = "spatial-simulations.md";
         var mkdocs_page_url = null;
       </script>
@@ -52,9 +52,9 @@
               </ul>
               <p class="caption"><span class="caption-text">Toxin and Signaling User Guide</span></p>
               <ul class="current">
-                  <li class="toctree-l1"><a class="reference internal" href="../building-models/">Building models</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../building-models/">Building models with signals</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Running simulations</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Running simulations with signals</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#well-mixed-environments">Well-mixed environments</a>
     </li>
@@ -93,7 +93,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">Toxin and Signaling User Guide</li>
-      <li class="breadcrumb-item active">Running simulations</li>
+      <li class="breadcrumb-item active">Running simulations with signals</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -103,9 +103,9 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="running-simulations">Running simulations</h1>
-<p>Once metabolic models with signalling compound production and response have been built, it's time to run some simulations.</p>
+<p>Once metabolic models with signaling compound production and/or response have been built, it's time to run some simulations.</p>
 <h2 id="well-mixed-environments">Well-mixed environments</h2>
-<p>Toxin production can be simulated in a well-mixed environment using our three metabolite models: susceptibles, producers, and resistant cheaters. </p>
+<p>Toxin production can be simulated in a well-mixed environment using our three metabolite models: susceptibles, producers, and resistant cheaters. Recall that if producer models are not relevant for the simulations being run, signaling compounds instead should be added into the starting media at a constant or variable level, as appropriate.</p>
 <pre><code>S.initial_pop = [0,0,1e-10] # initialize populations with the desired biomass, no x and y coordinates
 R.initial_pop = [0,0,1e-10] # resistant
 P.initial_pop = [0,0,1e-10] # producer
@@ -132,7 +132,7 @@ sim.run()
 <p>Users can view the results of liquid simulations by examining the dataframes <code>sim.total_biomass</code> and <code>sim.media</code>. Note that the maximum number of cycles provided here may not be sufficient for the simulation to reach stationary phase depending on the growth rate provided and other parameters. Users should look carefully at the results of their simulations to ensure that they have gathered the information intended. </p>
 <p>In well-mixed simulations, five parameters are generally most consequential for the outcome of competition: the growth rate cost of toxin production, the toxin production rate, the total amount of carbon provided in the environment, the total size and relative genotype frequencies of the initial population, and the parameter <code>spaceWidth</code>. The <code>spaceWidth</code> parameter influences the concentration of the toxin and is therefore an important value when modeling signalling compounds. Smaller <code>spaceWidth</code> values will result in higher effective concentrations of toxins or other signalling molecules. </p>
 <h2 id="spatially-structured-environments">Spatially-structured environments</h2>
-<p>Signalling compound production can also be simulated in 2D space using the same three metabolite models: susceptibles, producers, and resistant cheaters.</p>
+<p>Signaling compound production can also be simulated in 2D space using the same three metabolite models: susceptibles, producers, and resistant cheaters. Again, if compound production is not relevant for simulations, the compound will need to be added into the media in some other way. </p>
 <h3 id="setting-up-the-initial-location-of-colonies">Setting up the initial location of colonies</h3>
 <p>One of the first and most important decisions that arises when running spatial simulations is how to initialize the starting locations of colonies. We detail the strategy taken in our paper, but note that COMETS has additional capabilities to set locations deterministically or randomly. </p>
 <p>To randomly generate starting locations (x,y coordinates) for colonies, users can define the following function:</p>
@@ -169,7 +169,7 @@ l = c.layout([P, R, S]) # set up the initial COMETS layout
 <p>It is generally desirable to save the starting locations of colonies in order to do any spatially-explicity analyses later. There are many approaches to accomplish this. For example, the strain genotype and x,y coordinates can be assigned to a dataframe and exported as a csv. Users should also consider saving the <code>spatial_seed</code> value set for the generation of starting locations in order to make their analyses reproducible. </p>
 <h3 id="tracking-the-biomass-of-individual-colonies">Tracking the biomass of individual colonies</h3>
 <p>One common challenge of spatially-structured simulations is that the default settings do not accommodate tracking the biomass of individual colonies. Instead, simulations can track the total biomass of each model type (susceptible, producer, resistant cheater) and the biomass of each model type at each x,y coordinate. Because biomass diffuses, many x,y locations in a grid will have a non-zero biomass value by the end of a simulation, and while the type of model that that biomass corresponds to can be discerned, which initial colony the biomass should be counted toward is not possible to ascertain in most cases. </p>
-<p>There are a few approaches to circumvent this limitation. The most straightforward involves assigning a unique metabolic model to each location, so that the total biomass file reflects the growth of every individual colony. This can be accomplished by making multiple individual COMETS models for all genotypes of interest.</p>
+<p>There are a few approaches to circumvent this limitation. The most straightforward involves assigning a unique metabolic model to each location, so that the total biomass file reflects the growth of every individual colony. This can be accomplished by making multiple individual COMETS models for all genotypes or models of interest.</p>
 <pre><code>grid_size = [50,50]
 number_of_colonies = 30 
 edge_space = 3 
@@ -251,7 +251,7 @@ sim.run(delete_files = False)
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../building-models/" class="btn btn-neutral float-left" title="Building models"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../building-models/" class="btn btn-neutral float-left" title="Building models with signals"><span class="icon icon-circle-arrow-left"></span> Previous</a>
         <a href="../license/" class="btn btn-neutral float-right" title="License">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
