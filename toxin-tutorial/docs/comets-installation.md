@@ -39,7 +39,7 @@ There are two important version issues to note when attempting to get started wi
 
 All simulations in this tutorial will rely on 4 `Python` packages:
 
-* `cobra`
+* `cobra`, from which `Model`, `Reaction`, and `Metabolite` should be imported
 * `random`
 * `pandas`
 * `cometspy`

@@ -1,10 +1,10 @@
 # Running simulations
 
-Once metabolic models with signalling compound production and response have been built, it's time to run some simulations.
+Once metabolic models with signaling compound production and/or response have been built, it's time to run some simulations.
 
 ## Well-mixed environments
 
-Toxin production can be simulated in a well-mixed environment using our three metabolite models: susceptibles, producers, and resistant cheaters. 
+Toxin production can be simulated in a well-mixed environment using our three metabolite models: susceptibles, producers, and resistant cheaters. Recall that if producer models are not relevant for the simulations being run, signaling compounds instead should be added into the starting media at a constant or variable level, as appropriate.
 
     S.initial_pop = [0,0,1e-10] # initialize populations with the desired biomass, no x and y coordinates
     R.initial_pop = [0,0,1e-10] # resistant
@@ -38,7 +38,7 @@ In well-mixed simulations, five parameters are generally most consequential for 
 
 ## Spatially-structured environments
 
-Signalling compound production can also be simulated in 2D space using the same three metabolite models: susceptibles, producers, and resistant cheaters.
+Signaling compound production can also be simulated in 2D space using the same three metabolite models: susceptibles, producers, and resistant cheaters. Again, if compound production is not relevant for simulations, the compound will need to be added into the media in some other way. 
 
 ### Setting up the initial location of colonies
 
@@ -87,7 +87,7 @@ It is generally desirable to save the starting locations of colonies in order to
 
 One common challenge of spatially-structured simulations is that the default settings do not accommodate tracking the biomass of individual colonies. Instead, simulations can track the total biomass of each model type (susceptible, producer, resistant cheater) and the biomass of each model type at each x,y coordinate. Because biomass diffuses, many x,y locations in a grid will have a non-zero biomass value by the end of a simulation, and while the type of model that that biomass corresponds to can be discerned, which initial colony the biomass should be counted toward is not possible to ascertain in most cases. 
 
-There are a few approaches to circumvent this limitation. The most straightforward involves assigning a unique metabolic model to each location, so that the total biomass file reflects the growth of every individual colony. This can be accomplished by making multiple individual COMETS models for all genotypes of interest.
+There are a few approaches to circumvent this limitation. The most straightforward involves assigning a unique metabolic model to each location, so that the total biomass file reflects the growth of every individual colony. This can be accomplished by making multiple individual COMETS models for all genotypes or models of interest.
 
     grid_size = [50,50]
     number_of_colonies = 30 
