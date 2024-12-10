@@ -5,6 +5,7 @@ nav:
         - COMETS Capabilities: comets-capabilities.md
         - COMETS Installation: comets-installation.md
     - Toxin and Signaling User Guide:
+        - Signaling overvew: signaling-overview.md
         - Building models with signals: building-models.md
         - Running simulations with signals: spatial-simulations.md
     - About: 

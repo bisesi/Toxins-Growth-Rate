@@ -18,7 +18,7 @@ Toxin production can be simulated in a well-mixed environment using our three me
     p.set_param("defaultKm", 0.000001) # set Km
     p.set_param('maxCycles', 300) # set the total number of simulation hours
     p.set_param('timeStep', 0.1) # set the timestep of each simulation
-    p.set_param('spaceWidth', 0.02) # set the size of the 2D environment, i.e. 2cm x 2cm
+    p.set_param('spaceWidth', 0.02) # set the size of the environment in m
     p.set_param('writeMediaLog', True) # if True, COMETS will provide the log of metabolite concentrations over time
     p.set_param('MediaLogRate', 1) # timestep at which to record changes in metabolite concentrations
     p.set_param('writeFluxLog', True) # if True, COMETS will provide the log of metabolic fluxes for each model over time
@@ -34,7 +34,7 @@ sim.run()
 
 Users can view the results of liquid simulations by examining the dataframes `sim.total_biomass` and `sim.media`. Note that the maximum number of cycles provided here may not be sufficient for the simulation to reach stationary phase depending on the growth rate provided and other parameters. Users should look carefully at the results of their simulations to ensure that they have gathered the information intended. 
 
-In well-mixed simulations, five parameters are generally most consequential for the outcome of competition: the growth rate cost of toxin production, the toxin production rate, the total amount of carbon provided in the environment, the total size and relative genotype frequencies of the initial population, and the parameter `spaceWidth`. The `spaceWidth` parameter influences the concentration of the toxin and is therefore an important value when modeling signalling compounds. Smaller `spaceWidth` values will result in higher effective concentrations of toxins or other signalling molecules. 
+In well-mixed simulations, five parameters are generally most consequential for the outcome of competition: the growth rate cost of toxin production, the toxin production rate, the total amount of carbon provided in the environment, the total size and relative genotype frequencies of the initial population, and the parameter `spaceWidth`. The `spaceWidth` parameter influences the concentration of the toxin and is therefore an important value when modeling signaling compounds. Smaller `spaceWidth` values will result in higher effective concentrations. 
 
 ## Spatially-structured environments
 
@@ -42,7 +42,7 @@ Signaling compound production can also be simulated in 2D space using the same t
 
 ### Setting up the initial location of colonies
 
-One of the first and most important decisions that arises when running spatial simulations is how to initialize the starting locations of colonies. We detail the strategy taken in our paper, but note that COMETS has additional capabilities to set locations deterministically or randomly. 
+One of the first and most important decisions that arises when running spatial simulations is how to initialize the starting locations of colonies. We detail the strategy taken in our paper, but note there are many possible approaches to generate initial starting locations randomly or deterministically. 
 
 To randomly generate starting locations (x,y coordinates) for colonies, users can define the following function:
 
@@ -171,7 +171,7 @@ Users can examine the outputs of `sim.total_biomass` and `sim.media` to evaluate
 
 ### Troubleshooting appropriate simulation durations
 
-For successful spatial simulations, users should be attentive to the timestep (`timeStep` or `dt`), the rate of diffusion (`defaultDiffConst` and `numDiffPerStep`), and total simulation duration (`maxCycles`). 
+For successful simulations with signals, as we have mentioned, users should be attentive to the timestep (`timeStep` or `dt`), the rate of diffusion (`defaultDiffConst` and `numDiffPerStep`), and total simulation duration (`maxCycles`). 
 
 To test that the timestep `dt` (`p.set_param('timeStep', dt)`) is appropriate, users should consult the `sim.run_ouput` following an initial short simulation. `run_ouput` will provide information about the diffusion constants, in particular raising a warning if the diffusion constants are unstable. The file will also suggest the appropriate timestep to fix the problem. By calculating `dt` with the `spaceWidth` and `metabolite_diff` variables, users should be able to largely offset this issue. However, it is worth verifying before running computationally expensive simulations with a higher number of `maxCycles` in order to make sure that estimations are as robust as possible. 
 

@@ -1,6 +1,6 @@
 # Building metabolic models with signaling compound production or response
 
-The first step to running simulations with signaling compounds is building metabolic models that can accommodate the production of or response to these compounds. We will detail several model-building processes, including the approach taken in our paper.
+Once users are familiar with the `add_signal` and `add_multitoxin` functions, the first step to running simulations with signaling compounds is building metabolic models that can accommodate the production of or response to these compounds. We will detail several model-building processes, including the approach taken in our paper.
 
 ## Adding new signals to existing models
 
@@ -36,17 +36,17 @@ When setting a new metabolite as a toxin or signaling compound, the affected mod
 
     from cobra import Metabolite, Reaction
     toxin_e = Metabolite(id = "toxin_e", compartment = "e") # create a toxin metabolite in the extracellular environment
-    EX_toxin_e = Reaction(id = "EX_toxin_e", lower_bound = -1000, upper_bound = 1000) # create an exchange reaction for the toxin 
+    EX_toxin_e = Reaction(id = "EX_toxin_e", lower_bound = -1000., upper_bound = 1000.) # create an exchange reaction for the toxin 
     EX_toxin_e.add_metabolites({toxin_e: -1}) # add toxin metabolite and stoichiometric coefficient, which in this case is -1
     E_cobra.add_reactions([EX_toxin_e]) # add the exchange reaction to E coli
 
-Now, the *E. coli* metabolic model can take up the toxin metabolite, which is essential for its sensitivity to the compound. However, we have yet to define how the compound will impact the growth rate or survival of *E. coli*, which we will do with the `add_signal` function. This is the essential innovation of this paper, and the arguments of the function are discussed in greater detail later in the tutorial. Here, we are interested in defining a toxin that will impact the growth rate of *E. coli* by reducing the upper bound on biomass without allowing biomass production to become negative. These changes need to be made to the COMETS version of the model.
+Now, the *E. coli* metabolic model can sense the toxic metabolite in the environment, which is essential for its sensitivity to the compound. However, we have yet to define how the compound will impact the growth rate or survival of *E. coli*, which we will do with the `add_signal` function. Here, we are interested in defining a toxin that will impact the growth rate of *E. coli* by reducing the upper bound on biomass without allowing biomass production to become negative. These changes need to be made to the COMETS version of the model.
 
     response = E.reactions.loc[E.reactions.REACTION_NAMES == "Biomass_Ecoli_core",:].ID.item() # reaction altered by the toxin
     signal_exch = E.reactions.loc[E.reactions.REACTION_NAMES == "EX_toxin_e",:].EXCH_IND.item() # exch_id of the toxin
-    E.add_signal(response, signal_exch, 'ub', 'bounded_linear', parms = [1,0.2,-0.2,5.2])
+    E.add_signal(response, signal_exch, 'ub', 'bounded_linear', parms = [1.0,0.2,-0.2,5.2])
 
-The biomass of *E. coli* will now be reduced linearly based on the extracellular concentration of the toxin, with the effect starting at a concentration of 0.2mmol and saturating (i.e. reducing *E. coli*'s growth rate to 0) at a concentration of 5.2 mmol, with a slope of -0.2. These specific parameters can be changed to model different functional relationships, and more details about these values - and how to choose them - are discussed later.
+The biomass of *E. coli* will now be reduced linearly based on the extracellular concentration of the toxin, with the effect starting at a concentration of 0.2mmol and saturating (i.e. reducing *E. coli*'s growth rate to 0) at a concentration of 5.2 mmol, with a slope of -0.2. 
 
 We are now prepared to run a simulation with an *E. coli* model that will be sensitive to a toxin. In this case, we will need to add that toxin into the extracellular environment as an additional media component prior to running our simulation.
 
@@ -70,7 +70,7 @@ We can consider a situation where the extracellular build-up of the existing met
     PFK_num = m.reactions.loc[m.reactions.REACTION_NAMES == "PFK", "ID"].values[0]
     acald_exch_id = m.reactions.loc[m.reactions.REACTION_NAMES == "EX_acald_e", "EXCH_IND"].values[0]
 
-In this case, we will need to be more sensitive to the maximum flux through the `PFK` reaction in order to appropriately reduce it through the build up of acetaldehyde. To find the maximum flux, we can solve using the `cobra` model:
+In this case, we will need to be sensitive to the maximum flux through the `PFK` reaction in order to appropriately reduce it through the build up of acetaldehyde. To find the maximum flux, we can solve using the `cobra` model:
 
     sol = model.optimize()
     max_ub = sol.fluxes["PFK"]
@@ -92,14 +92,14 @@ Here, we have defined a signal such that the maximum flux through PFK `max_ub` w
 
 Using this approach, our signaling compound is present in the media at an initial concentration that will be reduced over simulation time as it is taken up by *E. coli*. 
 
-We may also be interested in a signaling compound that is added dynamically, whether to replicate pulses by a producer or other scenario. The simplest way to do this is by using several available tools in COMETS, one of which is the ability to "refresh" compounds, adding a certain mmol of compound per spatial box per hour. 
+We may also be interested in a signaling compound that is added dynamically, whether to replicate pulses by a producer or another scenario. The simplest way to do this is by using several available tools in COMETS, one of which is the ability to "refresh" compounds, adding a certain mmol of compound per spatial box per hour. 
 
     l.set_specific_metabolite("acald_e", 0.) # reset
     l.set_specific_refresh("acald_e", 0.25)
 
 ## Making toy producer models using `cobra`
 
-Finally, users may want to make toy models, such as the ones used in our publication. Functionally, these models will not significantly differ from existing models. The basic premise of their construction is identical to the previous examples. Their benefit is that they are more easily manipulated, since every exchange and reaction is chosen and specifically defined by the user, and they are fractionally less computationally expensive due to having only a handful of fluxes. 
+Finally, users may want to make toy models, such as the ones used in our publication. Functionally, these models will not significantly differ from existing models. The basic premise of their construction is identical to the previous examples. Their benefit is that they are more easily manipulated, since every exchange and reaction is chosen and specifically defined by the user. 
 
 The most straightforward way to generate toy metabolic models is to create a function that defines the desired models using a variety of functions and object types from `cobrapy`. So far, we have only seen how to add signaling compounds that exist in the extracellular environment and impact a strain growing in isolation. This function provides a way to create a metabolic model that will produce the signaling compound. This same basic process can be applied to existing models, if users would like to add toxin production to existing models. 
 
@@ -231,46 +231,4 @@ S.add_signal(biomass_id, toxin_exch_id, 'ub', add_signal_parameter,
                       slope_of_toxin_effect,
                      toxin_conc_where_effect_saturates])
 ```
-Using these arguments will create a signal such that the growth rate of the susceptible model will reduce linearly in proportion to the concentration of toxin in the environment, with the effect on growth rate occurring whenever toxin is present and saturating when the toxin concentration reaches 1. Here, as we have previously seen, the `"bounded_linear"' argument ensures that the upper bound of growth rate does not become negative. 
-
-## Details on the `add_signal` function
-
-While this tutorial provides several examples of toxic metabolites, the `add_signal` function can accommodate a variety of approaches for modeling all types of signaling compounds. Manipulating the arguments of the function will determine the metabolic consequences of a signaling molecule for a focal model. The function has five main arguments:
-
-    model.add_signal(altered_reaction_id, metabolite_id, altered_bound, functional_relationship, [parms])
-
-The biological significance of these parameters is:
-
-* `altered_reaction_id`: The numeric ID of the metabolic reaction whose bounds will be altered by the uptake of the signaling compound. If modifying the maximum growth rate, the biomass growth objective should be used. When modeling -cidal toxins, the argument `'death'` can be used instead.
-* `metabolite_id`: The index of the exchange reaction for the signaling metabolite. Models sense the external environment based on exchange reactions, which is why a reaction is specified rather than a metabolite. This value should therefore be numeric and correspond to the `EXCH_IND` of the appropriate metabolite.
-* `altered_bound`: The reaction bound that is impacted by uptake of the signaling compound, either `'ub'` (upper bound) or `'lb'` (lower bound). Generally when modeling toxins that impact growth rate, `ub` should be used, although `lb` may be appropriate if users are interested in using a signaling compound to upregulate some metabolite process.
-* `functional_relationship`: The signal-response curve detailing the shape of the functional relationship between the signaling compound concentration and the altered reaction bound. Three options are available: `'linear'`, `'bounded_linear'`, and `'generalized_logistic'`. `linear` and `bounded_linear` will model a fixed effect. The choice of functional relationship will determine the list of inputs to the final argument, `parms`.
-* `parms`: The parameters for the functional relationship between signaling compound concentration and the reaction bound. The number of parameters and their meaning will vary based on the functional relationship chosen. The appropriate parameters should be included as a list, as indicated by the brackets.
-
-If the functional relationship `linear` is chosen, two parameters are necessary for the `parms` argument, such that `parms = [slope, bound]`:
-
-* `slope`: The slope of the linear relationship between the concentration of the signaling compound and the bound of the altered reaction.
-* `bound`: The maximum (or minimum, if using `lb`) amount of flux that the altered reaction (`altered_reaction_id`) can carry in the absence of toxin or signaling compound. 
-
-If the functional relationship `bounded_linear` is chosen, four parameters are necessary for the `parms` argument, such that `parms = [baseline_value, conc_where_effect_starts, slope, conc_where_effect_saturates]`. The same basic formulation applies for `generalized_logistic` as well:
-
-* `baseline_value`: The default response of the altered reaction at concentrations below the critical threshold `conc_where_effect_starts`. 
-* `conc_where_effect_starts`: The signaling compound concentration at which the altered reaction begins to change. 
-* `slope`: The slope of the linear relationship between the concentration of the signaling compound and the bound of the altered reaction. For `generalized_logistic` the slope of the curve between the upper and lower response limits of the dose-response curve.
-* `conc_where_effect_saturates`: The signaling compound concentration at which the reduction of the altered reaction saturates. 
-
-Note that the `bounded_linear` relationship is preferable over `linear` when users would like to prevent a reaction like biomass from becoming negative as a result of toxin. `generalized_logistic` will generally provide the most biologically-realistic relationship between model reactions and signaling compound concentrations, although there are many situations in which `bounded_linear` and `generalized_logistic` will not give qualitatively divergent results. 
-
-Finally, users may chose a special case of signaling with `add_multitoxin`. The function adds a signaling relationship for multiple toxins, relying on a Hill-function reduction of (typically) the upper bound of a reaction. Users will find this function most useful when considering multiple, additively-functioning signals. The function arguments are very similar to the `add_signal` function, though multiple exchange IDs, along with Km values and Hill coefficients, are required. 
-
-    model.add_multioxin(altered_reaction_id, [exch_ids], bound, vmax, [kms], [hills])
-
-The parameters here are:
-
-* `altered_reaction_id`: The numeric ID of the metabolic reaction whose bounds will be altered by the uptake of the signaling compounds.
-* `exch_ids`: A list of exchange indexes for the signaling metabolite. 
-* `bound`: The bound of the reaction to be altered, either `ub` or `lb`.
-* `vmax`: The maximum bound of the reaction in the absence of signals.
-* `kms`: A list of Km values (half-saturation concentrations) for the signals being incorporated.
-* `hills`: A list of Hill coefficients for all the signals being incorporated.
-
+Using these arguments will create a signal such that the growth rate of the susceptible model will reduce linearly in proportion to the concentration of toxin in the environment, with the effect on growth rate occurring whenever toxin is present and saturating when the toxin concentration reaches 1. 
