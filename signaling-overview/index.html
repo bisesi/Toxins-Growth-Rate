@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Signaling overvew - COMETS Toxin Implementation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Signaling overvew";
+        var mkdocs_page_input_path = "signaling-overview.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> COMETS Toxin Implementation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">COMETS Overview</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../comets-capabilities/">COMETS Capabilities</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../comets-installation/">COMETS Installation</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Toxin and Signaling User Guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Signaling overvew</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#the-signaling-function">The signaling function</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#the-signal-response-curve">The signal-response curve</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#implementing-multitoxins">Implementing multitoxins</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#useful-notes-for-successful-modeling">Useful notes for successful modeling</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../building-models/">Building models with signals</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../spatial-simulations/">Running simulations with signals</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">About</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../license/">License</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">COMETS Toxin Implementation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Toxin and Signaling User Guide</li>
+      <li class="breadcrumb-item active">Signaling overvew</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="an-overview-of-the-comets-signaling-capabilities">An overview of the COMETS signaling capabilities</h1>
+<p>The COMETS platform is now equipped with two additional modeling capabilities: modeling single signal-reaction relationships, where a single metabolite changes the bounds on a single reaction, and modeling multiple signal-single reaction relationships, where several metabolites additively change the bounds on a single reaction. </p>
+<p>From these capabilities, a number of useful modeling scenarios can be generated:</p>
+<ul>
+<li><strong>Interspecies toxins / signaling</strong>: One species produces a book-keeping metabolite that a second species can see via an exchange reaction and which signals changes in the second species. This is the basis of our manuscript.</li>
+<li><strong>Quorum-sensing</strong>: A book-keeping metabolite is produced and secreted as part of the growth objective and serves as a signal that increases the bounds on a costly reaction.</li>
+<li><strong>Diauxie</strong>: A nutrient metabolite influences the transport reaction of a second metabolite.</li>
+<li><strong>Multitoxins</strong>: Multiple metabolites lower the upper bound on a species' biomass.</li>
+</ul>
+<p>We discuss the basic structure of the <code>add_signal</code> and <code>add_multitoxin</code> functions which encode this ability. We also provide several examples of building signal-sensitive or signal-producing models and setting up well-mixed and spatial simulations appropriately. </p>
+<h2 id="the-signaling-function">The signaling function</h2>
+<p>There are two functions that allow users the ability to add signal production and response to their metabolic models: <code>add_signal</code>, which sets up a single metabolite-reaction relationship, and <code>add_multitoxin</code>, which sets up a multiple metabolite-single reaction relationship. The basic structure of the <code>add_signal</code> function looks like this in <code>cometspy</code>:</p>
+<pre><code>model.add_signal(altered_reaction_id, metabolite_id, altered_bound, functional_relationship, [parms])
+</code></pre>
+<p>The biological significance of these parameters is:</p>
+<ul>
+<li><code>altered_reaction_id</code>: The numeric ID of the metabolic reaction whose bounds will be altered by the uptake of the signaling compound. If modifying the maximum growth rate, the biomass growth objective should be used. When modeling -cidal toxins, the argument <code>'death'</code> can be used instead.</li>
+<li><code>metabolite_id</code>: The index of the exchange reaction for the signaling metabolite. Models sense the external environment based on exchange reactions, which is why a reaction is specified rather than a metabolite. This value should therefore be numeric and correspond to the <code>EXCH_IND</code> of the appropriate metabolite.</li>
+<li><code>altered_bound</code>: The reaction bound that is impacted by uptake of the signaling compound, either <code>'ub'</code> (upper bound) or <code>'lb'</code> (lower bound). Generally when modeling toxins that impact growth rate, <code>ub</code> should be used, although <code>lb</code> may be appropriate if users are interested in using a signaling compound to upregulate some metabolite process.</li>
+<li><code>functional_relationship</code>: The signal-response curve detailing the shape of the functional relationship between the signaling compound concentration and the altered reaction bound. Three options are available: <code>'linear'</code>, <code>'bounded_linear'</code>, and <code>'generalized_logistic'</code>. <code>linear</code> and <code>bounded_linear</code> will model a fixed effect. The choice of functional relationship will determine the length and identities of the list of inputs to the final argument, <code>parms</code>.</li>
+<li><code>parms</code>: The parameters for the functional relationship between signaling compound concentration and the reaction bound. The number of parameters and their meaning will vary based on the functional relationship chosen. The appropriate parameters should be included as a list, as indicated by the brackets.</li>
+</ul>
+<h2 id="the-signal-response-curve">The signal-response curve</h2>
+<p>One essential decision when designing simulations with signaling compounds is the functional relationship between the concentration of the compound and the altered reaction. We provide the ability to model both linear and sigmoid relationships. The appropriate choice will depend strongly on the biological details of the system that the user is hoping to model, although there are several useful considerations, including the number of parameterizing arguments required to implement the different functional relationships.</p>
+<p>If the functional relationship <code>linear</code> is chosen, two parameters are necessary for the <code>parms</code> argument, such that <code>parms = [slope, bound = 0]</code>:</p>
+<ul>
+<li><code>slope</code>: The slope of the linear relationship between the concentration of the signaling compound and the bound of the altered reaction.</li>
+<li><code>bound</code>: The maximum (or minimum, if using <code>lb</code>) amount of flux that the altered reaction (<code>altered_reaction_id</code>) can carry in the absence of toxin or signaling compound. When this parameter is not provided, it takes a default value of 0. </li>
+</ul>
+<p>If the functional relationship <code>bounded_linear</code> is chosen, four parameters are necessary for the <code>parms</code> argument, such that <code>parms = [baseline_value, conc_where_effect_starts, slope, conc_where_effect_saturates]</code>:</p>
+<ul>
+<li><code>baseline_value</code>: The default response of the altered reaction at concentrations below the critical threshold <code>conc_where_effect_starts</code>. </li>
+<li><code>conc_where_effect_starts</code>: The signaling compound concentration at which the altered reaction begins to change. </li>
+<li><code>slope</code>: The slope of the linear relationship between the concentration of the signaling compound and the bound of the altered reaction. </li>
+<li><code>conc_where_effect_saturates</code>: The signaling compound concentration at which the reduction of the altered reaction saturates. </li>
+</ul>
+<p>If the functional relationship <code>generalized_logistic</code> is chosen, four parameters are necessary, and up to seven can be provided, for the <code>parms</code> argument, such that <code>parms = [left_asym, right_asym, growth_rate, starting_dose = 0, C = 1, Q = 1, v = 1]</code>:</p>
+<ul>
+<li><code>left_asym</code>: The default response of the altered reaction at concentrations below the critical threshold, which in a dose-response logistic function is the left horizontal asymptote.</li>
+<li><code>right_asym</code>: The signaling compound concentration at which the reduction of the altered reaction saturates, which in a dose-response logistic function is the right horizontal asymptote.</li>
+<li><code>growth_rate</code>: The growth rate, or steepness, of the dose-response curve. </li>
+<li><code>starting_dose</code>: The signaling compound concentration at which the altered reaction begins to change, or move away from the left horizontal asymptote. If this parameter is not provided, it takes a default value of 0.</li>
+</ul>
+<p>The parameters <code>C</code>, <code>Q</code> and <code>v</code> all take default value of 1, which should cover most use-cases of the generalized logistic function for signaling purposes. Unless users have a clear understanding of the dose-response curve they are interested in modeling and a strong rationale for setting these parameters themselves, it is advisable to only provide <code>left_asym</code>, <code>right_asym</code>, <code>growth_rate</code> and <code>starting_dose</code> parameters and use the default values for the remaining three. </p>
+<p>Note that the <code>bounded_linear</code> relationship is preferable over <code>linear</code> when users would like to prevent a reaction like biomass from becoming negative as a result of toxin. <code>generalized_logistic</code> will generally provide the most biologically-realistic relationship between model reactions and signaling compound concentrations, although there are many situations in which <code>bounded_linear</code> and <code>generalized_logistic</code> will not provide qualitatively divergent results. </p>
+<h2 id="implementing-multitoxins">Implementing multitoxins</h2>
+<p>Finally, users may chose a special case of signaling with <code>add_multitoxin</code>. The function adds a signaling relationship for multiple toxins, relying on a Hill-function reduction of (typically) the upper bound of a reaction. Users will find this function most useful when considering multiple, additively-functioning signals. The function arguments are very similar to the <code>add_signal</code> function, though multiple exchange IDs, along with compound-associated Km values and Hill coefficients, are required. </p>
+<pre><code>model.add_multitoxin(altered_reaction_id, [exch_ids], bound, vmax, [kms], [hills])
+</code></pre>
+<p>The parameters here are:</p>
+<ul>
+<li><code>altered_reaction_id</code>: The numeric ID of the metabolic reaction whose bounds will be altered by the uptake of the signaling compounds.</li>
+<li><code>exch_ids</code>: A list of exchange indexes for the signaling metabolite. </li>
+<li><code>bound</code>: The bound of the reaction to be altered, either <code>ub</code> or <code>lb</code>.</li>
+<li><code>vmax</code>: The maximum bound of the reaction in the absence of signals.</li>
+<li><code>kms</code>: A list of Km values (half-saturation concentrations) for the signals being incorporated.</li>
+<li><code>hills</code>: A list of Hill coefficients for all the signals being incorporated.</li>
+</ul>
+<h2 id="useful-notes-for-successful-modeling">Useful notes for successful modeling</h2>
+<p>There are several important modeling limitations to consider when setting up signaling in a COMETS simulation.</p>
+<ul>
+<li>When users choose to model -cidal toxins with the <code>'death'</code> argument, instead of specifying whether the signal should change the upper or lower bound on the altered reaction, they can instead specify whether they want the toxin to be consumed (removed from the environment at a rate equal to cellular uptake) or not consumed, using <code>'met_unchanged'</code> or <code>'consume_met'</code>. </li>
+<li>Users should take care when designing the signals to ensure that they are not designing impossible scenarios, such as the lower bound of a flux being greater than the upper bound. Plan to implement a variety of check to test that the upper bound of an altered reaction is not being reduced past the provided lower bound of that reaction and vice versa.  </li>
+<li>If users set up multiple signals to act on a single reaction without using the <code>add_multitoxin</code> function, the signal that was added last will override any signals previously added. The only exception to this is if two different signals affect different bounds on the same reaction.</li>
+<li>It is not advisable to set signals to affect exchange reactions. COMETS uses the bounds on exchange reactions for a variety of purposes, so changing their bounds is not a good idea. Instead, users can change <em>transport</em> reactions if they want to influence uptake using a signal.</li>
+<li>In order to be affected by a signal, a model must have an exchange reaction associated with that metabolite. It may need to be added to the model beforehand, but it is not necessary for the exchange reaction to be connected to any internal stoichiometry.</li>
+<li>COMETS uses Euler integration for signaled effects and death. This means simulation results will be sensitive to the timestep used. Users are advised in later portions of this tutorial to test how reducing the timestep influence the stability of the modeling results.</li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../comets-installation/" class="btn btn-neutral float-left" title="COMETS Installation"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../building-models/" class="btn btn-neutral float-right" title="Building models with signals">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../comets-installation/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../building-models/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

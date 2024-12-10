@@ -52,6 +52,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Toxin and Signaling User Guide</span></p>
               <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../signaling-overview/">Signaling overvew</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../building-models/">Building models with signals</a>
                   </li>
                   <li class="toctree-l1 current"><a class="reference internal current" href="#">Running simulations with signals</a>
@@ -118,7 +120,7 @@ p.set_param("defaultVmax", 1.) # set Vmax
 p.set_param("defaultKm", 0.000001) # set Km
 p.set_param('maxCycles', 300) # set the total number of simulation hours
 p.set_param('timeStep', 0.1) # set the timestep of each simulation
-p.set_param('spaceWidth', 0.02) # set the size of the 2D environment, i.e. 2cm x 2cm
+p.set_param('spaceWidth', 0.02) # set the size of the environment in m
 p.set_param('writeMediaLog', True) # if True, COMETS will provide the log of metabolite concentrations over time
 p.set_param('MediaLogRate', 1) # timestep at which to record changes in metabolite concentrations
 p.set_param('writeFluxLog', True) # if True, COMETS will provide the log of metabolic fluxes for each model over time
@@ -130,11 +132,11 @@ p.set_param("totalBiomassLogRate", 1) # timestep at which to record changes in b
 sim.run()
 </code></pre>
 <p>Users can view the results of liquid simulations by examining the dataframes <code>sim.total_biomass</code> and <code>sim.media</code>. Note that the maximum number of cycles provided here may not be sufficient for the simulation to reach stationary phase depending on the growth rate provided and other parameters. Users should look carefully at the results of their simulations to ensure that they have gathered the information intended. </p>
-<p>In well-mixed simulations, five parameters are generally most consequential for the outcome of competition: the growth rate cost of toxin production, the toxin production rate, the total amount of carbon provided in the environment, the total size and relative genotype frequencies of the initial population, and the parameter <code>spaceWidth</code>. The <code>spaceWidth</code> parameter influences the concentration of the toxin and is therefore an important value when modeling signalling compounds. Smaller <code>spaceWidth</code> values will result in higher effective concentrations of toxins or other signalling molecules. </p>
+<p>In well-mixed simulations, five parameters are generally most consequential for the outcome of competition: the growth rate cost of toxin production, the toxin production rate, the total amount of carbon provided in the environment, the total size and relative genotype frequencies of the initial population, and the parameter <code>spaceWidth</code>. The <code>spaceWidth</code> parameter influences the concentration of the toxin and is therefore an important value when modeling signaling compounds. Smaller <code>spaceWidth</code> values will result in higher effective concentrations. </p>
 <h2 id="spatially-structured-environments">Spatially-structured environments</h2>
 <p>Signaling compound production can also be simulated in 2D space using the same three metabolite models: susceptibles, producers, and resistant cheaters. Again, if compound production is not relevant for simulations, the compound will need to be added into the media in some other way. </p>
 <h3 id="setting-up-the-initial-location-of-colonies">Setting up the initial location of colonies</h3>
-<p>One of the first and most important decisions that arises when running spatial simulations is how to initialize the starting locations of colonies. We detail the strategy taken in our paper, but note that COMETS has additional capabilities to set locations deterministically or randomly. </p>
+<p>One of the first and most important decisions that arises when running spatial simulations is how to initialize the starting locations of colonies. We detail the strategy taken in our paper, but note there are many possible approaches to generate initial starting locations randomly or deterministically. </p>
 <p>To randomly generate starting locations (x,y coordinates) for colonies, users can define the following function:</p>
 <pre><code>def pick_unique_locations(width, height, n, edge_space = 0):
     locs = []
@@ -244,7 +246,7 @@ sim.run(delete_files = False)
 </code></pre>
 <p>Users can examine the outputs of <code>sim.total_biomass</code> and <code>sim.media</code> to evaluate their simulations. It is almost certain that individual adjustments will need to be made to ensure that colonies reach stationary or that the rate of diffusion is appropriate depending on the other desired parameters like growth rate, etc. </p>
 <h3 id="troubleshooting-appropriate-simulation-durations">Troubleshooting appropriate simulation durations</h3>
-<p>For successful spatial simulations, users should be attentive to the timestep (<code>timeStep</code> or <code>dt</code>), the rate of diffusion (<code>defaultDiffConst</code> and <code>numDiffPerStep</code>), and total simulation duration (<code>maxCycles</code>). </p>
+<p>For successful simulations with signals, as we have mentioned, users should be attentive to the timestep (<code>timeStep</code> or <code>dt</code>), the rate of diffusion (<code>defaultDiffConst</code> and <code>numDiffPerStep</code>), and total simulation duration (<code>maxCycles</code>). </p>
 <p>To test that the timestep <code>dt</code> (<code>p.set_param('timeStep', dt)</code>) is appropriate, users should consult the <code>sim.run_ouput</code> following an initial short simulation. <code>run_ouput</code> will provide information about the diffusion constants, in particular raising a warning if the diffusion constants are unstable. The file will also suggest the appropriate timestep to fix the problem. By calculating <code>dt</code> with the <code>spaceWidth</code> and <code>metabolite_diff</code> variables, users should be able to largely offset this issue. However, it is worth verifying before running computationally expensive simulations with a higher number of <code>maxCycles</code> in order to make sure that estimations are as robust as possible. </p>
 <p>Additionally, the appropriate number of <code>maxCycles</code> required to reach the cessation of growth (i.e. stationary phase) is likely to be highly dependent on simulation-specific parameters like diffusion constants and growth rate. This should be adjusted as needed and may require several rounds of running simulations and checking the final timesteps to see if biomass continues to change. </p>
               

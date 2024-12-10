@@ -54,6 +54,8 @@
               </ul>
               <p class="caption"><span class="caption-text">Toxin and Signaling User Guide</span></p>
               <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../signaling-overview/">Signaling overvew</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../building-models/">Building models with signals</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../spatial-simulations/">Running simulations with signals</a>
@@ -90,14 +92,14 @@
               
                 <h1 id="capabilities-of-the-comets-platform">Capabilities of the COMETS platform</h1>
 <p>COMETS can:</p>
-<p><strong>Simulate a range of spatial conditions</strong></p>
+<p><strong>Simulate a range of spatial conditions:</strong></p>
 <ul>
 <li>Microbial growth in 2D and 3D environments</li>
 <li>Diffusive and convective spatial propagation of biomass</li>
 <li>Substrate-dependent nutrient and biomass propagation</li>
 <li>Boundary conditions</li>
 </ul>
-<p><strong>Simulate a range of other biologically realistic details</strong></p>
+<p><strong>Simulate a range of other biologically realistic details:</strong></p>
 <ul>
 <li>Chemostat and batch growth modes</li>
 <li>Parsimonious dFBA</li>
@@ -106,6 +108,11 @@
 <li>Evolutionary processes like random mutation (reaction deletions)</li>
 </ul>
 <p>The software is implemented in JAVA and can be run via the command-line or in a graphical user interface. In multi-CPU systems, dFBA is parallelized for greater computational performance. Toolboxes in both <code>MATLAB</code> and <code>Python</code> are available to modify the input files for COMETS in a programmatic way. </p>
+<p><strong>With the introduction of the signaling class in COMETS, we augment the capabilities of the platform to include:</strong></p>
+<ul>
+<li>Single signal-reaction relationships, where the presence of a metabolite changes the bounds of a metabolic reaction</li>
+<li>Multiple signal-single reaction relationships, where the presence of multiple metabolites additively change the bounds of a metabolic reaction</li>
+</ul>
               
             </div>
           </div><footer>
