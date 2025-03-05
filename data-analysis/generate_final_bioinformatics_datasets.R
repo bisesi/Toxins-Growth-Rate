@@ -45,20 +45,31 @@ write.csv(rbind(strep_data_atb %>% select(-c(species)), strep_data_jmc), file = 
 
 
 #levy 
-growth_rates_levy <- read_csv(here::here("bioinformatics-data", "levy", "grodon_growthrate_data.csv")) %>% 
-  dplyr::select(-c(`...1`)) %>% unique()
-levy_ids <- read_csv(here::here("bioinformatics-data", "levy", "genome_ids.csv")) %>% 
+species <- read_csv(here::here("bioinformatics-data", "levy", "genome_ids.csv")) %>%
+  dplyr::select(-c(`...1`))
+genes <- read_csv(here::here("bioinformatics-data", "levy", "all_genes.csv"))
+pfams <- read_csv(here::here("bioinformatics-data", "levy", "all_pfams.csv"))
+genes_pfams <- read_csv(here::here("bioinformatics-data", "levy", "all_genes_pfams.csv"))
+unique_proteinID_pfamID_pairs <- genes_pfams %>% select(proteinID, pfamID) %>% unique()
+levy_ids <- species %>% 
   mutate(species_id = word(organism, 1,2, sep=" ")) %>%
   filter(!str_detect(species_id, "\\b\\w+\\b sp\\b")) %>%
   filter(!str_detect(species_id, "\\d")) %>%
   filter(str_detect(species_id, "^[A-Z][a-z]+\\s[a-z]+$")) %>%
   mutate(species_id = tolower(species_id)) %>%
   select(genome, species_id)
-toxins_levy <- read_csv(here::here("bioinformatics-data", "levy", "all_genes.csv")) %>% inner_join(., levy_ids, by = "genome") %>% mutate(dataset = "levy")
+
+unique_ids_per_genome <- genes %>% filter(protein_toxicity == "tox") %>%
+  select(genome, proteinID, product_name) %>%
+  inner_join(., unique_proteinID_pfamID_pairs, by = "proteinID") %>%
+  inner_join(., levy_ids, by = "genome")
+
+growth_rates_levy <- read_csv(here::here("bioinformatics-data", "levy", "grodon_growthrate_data.csv")) %>% 
+  dplyr::select(-c(`...1`)) %>% unique()
 
 #concatenate levy data and dump all plasmid maintenance toxins
-complete_levy <- toxins_levy %>% inner_join(., growth_rates_levy, by = "species_id") %>%
-  filter(protein_toxicity == "tox") %>% select(genome, product_name, species_id, predicted_d) %>%
+complete_levy <- unique_ids_per_genome %>% inner_join(., growth_rates_levy, by = "species_id") %>%
+  select(genome, product_name, species_id, predicted_d, pfamID, proteinID) %>%
   mutate(product_name = ifelse(is.na(product_name), "unknown", product_name)) %>%
   mutate(product_name = tolower(product_name)) %>% filter(grepl("plasmid maintenance", product_name) == FALSE & grepl("plasmid", product_name) == FALSE &
                                                             grepl("toxin-antitoxin", product_name) == FALSE & grepl("addiction", product_name) == FALSE) 

@@ -53,7 +53,8 @@ for (i in unique(locations$spatial_seed)){
   susceptibles <- rbind(susceptibles, data.frame(sus, spatial_seed = i))
 }
 
-stationary <- get_stationary_timepoint(here::here("toxin-simulations", "simulations_spatial", "figure1", "total_biomass_figure1.csv"))
+stationary <- biomass %>% group_by(growth_rate, spatial_seed) %>% filter(cycle == max(cycle)) %>% 
+  select(cycle, growth_rate, spatial_seed) %>% unique()
 
 distances_vs_biomass <- biomass %>% mutate(label = paste(species, colony_number, sep = "_")) %>% rename(biomass = value) %>%
   inner_join(., susceptibles %>% rename(distance = value), by = c("spatial_seed", "label")) %>%
@@ -117,7 +118,10 @@ liquid <- read_csv(here::here("toxin-simulations", "simulations_liquid", "liquid
   mutate(mean_pop = min(final_percent),
          mean_fitness = relative_fitness) %>% dplyr::select(-c(relative_fitness, final_percent))
 
-stationary <- get_stationary_timepoint(here::here("toxin-simulations", "simulations_spatial", "figure1", "total_biomass_figure1.csv"))
+stationary <- biomass %>% group_by(growth_rate, spatial_seed) %>% filter(cycle == max(cycle)) %>% 
+  select(cycle, growth_rate, spatial_seed) %>% unique()
+
+rep_number = 15
 
 spatial <- biomass %>% inner_join(., stationary, by = c("cycle", "growth_rate", "spatial_seed")) %>% 
   group_by(growth_rate, spatial_seed, species) %>% 
@@ -128,8 +132,8 @@ spatial <- biomass %>% inner_join(., stationary, by = c("cycle", "growth_rate", 
   group_by(growth_rate) %>%
   summarize(mean_fitness = mean(relative_fitness),
             mean_pop = mean(final_percent),
-            se_fitness = sd(relative_fitness) / sqrt(15),
-            se_pop = sd(final_percent) / sqrt(15)) %>% mutate(environment = "spatial")
+            se_fitness = sd(relative_fitness) / sqrt(rep_number),
+            se_pop = sd(final_percent) / sqrt(rep_number)) %>% mutate(environment = "spatial")
 
 partE <- rbind(spatial, liquid) %>%
   pivot_longer(cols = c(mean_fitness:se_pop), names_to = "name") %>%

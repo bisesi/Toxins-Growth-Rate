@@ -14,7 +14,7 @@ convert_filename <- function(filename) {
 }
 
 #create dataset
-files <- list.files(here::here("bioinformatics-data", "rocha", "annotations"), pattern = "\\.fna$")
+files <- list.files(here::here("bioinformatics-data", "rocha"), pattern = "\\.fna$")
 
 predicted_growth_rate_data <- data.frame()
 for (i in files){
