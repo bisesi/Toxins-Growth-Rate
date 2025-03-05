@@ -209,7 +209,7 @@ for i in expanded_grid.index.values:
         gr_absense_of_toxin = growth_rate
         toxin_conc_where_effect_starts = 0.
         slope_of_toxin_effect = -growth_rate
-        toxin_conc_where_effect_saturates = 1
+        toxin_conc_where_effect_saturates = toxin_coefficient
         S.add_signal(biomass_id, toxin_exch_id, 'ub', add_signal_parameter, 
                 parms = [gr_absense_of_toxin, 
                         toxin_conc_where_effect_starts, 
