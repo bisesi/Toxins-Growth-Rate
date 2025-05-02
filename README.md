@@ -8,7 +8,7 @@ Ave T. Bisesi, Jeremy M. Chacón, Michael J. Smanski, and William R. Harcombe
 
 ## Repository Overview
 
-This code repository contains the necessary data and scripts to reproduce the figures and analyses presented in the manuscript, "The strength of selection for costly toxin production increases with growth rate." The paper preprint is available on [bioRxiv](https://www.biorxiv.org/content/10.1101/2024.12.09.627242v1).
+This code repository contains the necessary data and scripts to reproduce the figures and analyses presented in the manuscript, "The strength of selection for costly toxin production increases with growth rate." The paper is available at [ISME J](https://academic.oup.com/ismej/article/19/1/wraf061/8108223#513204998).
 
 To reproduce the analyses, clone or download the project and follow the instructions provided below.
 
