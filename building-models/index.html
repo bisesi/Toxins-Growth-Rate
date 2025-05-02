@@ -105,15 +105,15 @@
 <pre><code>E_cobra = cobra.io.load_model('textbook') # basic IJO1366 model
 </code></pre>
 <p>As with any COMETS simulation, <code>cobra</code> models need to be converted to COMETS models prior to usage. This is a straightforward process in the case of existing models.</p>
-<pre><code>E = c.model(E_cobra)
+<pre><code>import cometspy as c
+E = c.model(E_cobra)
 E.open_exchanges() # ensures that models can take up any nutrients provided in the COMETS media
 E.obj_style = "MAX_OBJECTIVE_MIN_TOTAL" # type of flux solution
 </code></pre>
 <p>Setting up a COMETS simulation also involves specifying the initial populations, creating a layout, and seeding the media with the relevant components. More information about this process is available in the COMETS documentation, as many of the specific details will vary significantly based on the desires of the user.</p>
-<pre><code>E.initial_pop = [0, 0, 1.e-7] # the first two values are x, y coordinates, third is gDW
+<pre><code>E.initial_pop = [0, 0, 1.e-7] # the first two values are x, y coordinates, third is gDW for starting biomass
 layout = c.layout(E)
-E_media = {'co2_e': 1000.0,
-         'h_e': 1000.0,
+E_media = {'h_e': 1000.0,
          'h2o_e': 1000.0,
          'nh4_e': 1000.0,
          'o2_e': 1000.0,
@@ -122,60 +122,62 @@ for key, value in E_media.items():
     layout.set_specific_metabolite(key, value)
 layout.set_specific_metabolite("glc__D_e", 5e-4)
 </code></pre>
-<p>Once users have decided on many of the core parameters for their simulations, they may want to add a signaling compound. In this example, we will consider an undegradable toxin whose purpose is to reduce the growth of <em>E. coli</em> in a dose-dependent way. This toxin will exist in the media from the outset of simulations. </p>
+<p>Once users have decided on many of the core parameters for their simulations, they may want to add a signaling compound. In this example, we will consider a nondegradable, bactericidal toxin whose purpose is to kill <em>E. coli</em> in a linear way. This toxin will exist in the media from the outset of simulations. </p>
 <p>To make a toxin, we will assign a signal to the <em>E. coli</em> model that alters a reaction in that model based upon the concentration of an environmental metabolite. We will make a new metabolite for this purpose, although this isn't strictly necessary, as we will see later. </p>
 <p>When setting a new metabolite as a toxin or signaling compound, the affected model will need to be altered to have an exchange reaction for that metabolite. We will use functions from <code>cobra</code> to do that.</p>
 <pre><code>from cobra import Metabolite, Reaction
 toxin_e = Metabolite(id = "toxin_e", compartment = "e") # create a toxin metabolite in the extracellular environment
-EX_toxin_e = Reaction(id = "EX_toxin_e", lower_bound = -1000., upper_bound = 1000.) # create an exchange reaction for the toxin 
+EX_toxin_e = Reaction(id = "EX_toxin_e",
+                     lower_bound = -1000.,
+                     upper_bound = 1000.) # create an exchange reaction for the toxin 
 EX_toxin_e.add_metabolites({toxin_e: -1}) # add toxin metabolite and stoichiometric coefficient, which in this case is -1
 E_cobra.add_reactions([EX_toxin_e]) # add the exchange reaction to E coli
 </code></pre>
-<p>Now, the <em>E. coli</em> metabolic model can sense the toxic metabolite in the environment, which is essential for its sensitivity to the compound. However, we have yet to define how the compound will impact the growth rate or survival of <em>E. coli</em>, which we will do with the <code>add_signal</code> function. Here, we are interested in defining a toxin that will impact the growth rate of <em>E. coli</em> by reducing the upper bound on biomass without allowing biomass production to become negative. These changes need to be made to the COMETS version of the model.</p>
+<p>Now, the <em>E. coli</em> metabolic model can sense the toxic metabolite in the environment, which is essential for its sensitivity to the compound. However, we have yet to define how the compound will impact the growth rate or survival of <em>E. coli</em>, which we will do with the <code>add_signal</code> function. Here, we are interested in defining a toxin that will kill <em>E. coli</em> ('death') without changing the external concentration of the metabolite. These changes need to be made to the COMETS version of the model. </p>
 <pre><code>response = E.reactions.loc[E.reactions.REACTION_NAMES == "Biomass_Ecoli_core",:].ID.item() # reaction altered by the toxin
 signal_exch = E.reactions.loc[E.reactions.REACTION_NAMES == "EX_toxin_e",:].EXCH_IND.item() # exch_id of the toxin
-E.add_signal(response, signal_exch, 'ub', 'bounded_linear', parms = [1.0,0.2,-0.2,5.2])
+E.add_signal('death', signal_exch, 'met_unchanged', 'linear', parms = [0, 0.1])
 </code></pre>
-<p>The biomass of <em>E. coli</em> will now be reduced linearly based on the extracellular concentration of the toxin, with the effect starting at a concentration of 0.2mmol and saturating (i.e. reducing <em>E. coli</em>'s growth rate to 0) at a concentration of 5.2 mmol, with a slope of -0.2. </p>
+<p>The death rate of <em>E. coli</em> will now be increased based on the extracellular concentration of the toxin based on the linear parameter values 0 and 0.1.</p>
 <p>We are now prepared to run a simulation with an <em>E. coli</em> model that will be sensitive to a toxin. In this case, we will need to add that toxin into the extracellular environment as an additional media component prior to running our simulation.</p>
 <pre><code>toxin_mmol = 0.6 # set the concentration of toxin in the environment
 layout.set_specific_metabolite('toxin_e', toxin_mmol) # add toxin into the environment
 </code></pre>
 <h2 id="turning-existing-metabolites-into-signaling-compounds">Turning existing metabolites into signaling compounds</h2>
 <p>In some cases, instead of creating an entirely new metabolite that serves as a signaling compound, users will want models to respond to existing metabolites. We detail that process here, based on the textbook <em>E. coli</em> model.</p>
-<pre><code>model = cobra.io.load_model('textbook')
+<pre><code>E_cobra = cobra.io.load_model('textbook')
 </code></pre>
 <p>We can consider a situation where the extracellular build-up of the existing metabolite acetaldehyde (<code>EX_acald_e</code>) reduces the function of phosphofructokinase (<code>PFK</code>). The basics of the model set up will not change much from our previous example.</p>
 <pre><code># create COMETS model
-m = c.model(model)
-m.open_exchanges()
-m.initial_pop = [[0, 0, 0.01]]
+E = c.model(E_cobra)
+E.open_exchanges()
+E.initial_pop = [0, 0, 0.01]
 
 # add signaling relationship without adding a new metabolite
-PFK_num = m.reactions.loc[m.reactions.REACTION_NAMES == "PFK", "ID"].values[0]
-acald_exch_id = m.reactions.loc[m.reactions.REACTION_NAMES == "EX_acald_e", "EXCH_IND"].values[0]
+PFK_num = E.reactions.loc[E.reactions.REACTION_NAMES == "PFK", "ID"].values[0]
+acald_exch_id = E.reactions.loc[E.reactions.REACTION_NAMES == "EX_acald_e", "EXCH_IND"].values[0]
 </code></pre>
 <p>In this case, we will need to be sensitive to the maximum flux through the <code>PFK</code> reaction in order to appropriately reduce it through the build up of acetaldehyde. To find the maximum flux, we can solve using the <code>cobra</code> model:</p>
-<pre><code>sol = model.optimize()
+<pre><code>sol = E_cobra.optimize()
 max_ub = sol.fluxes["PFK"]
 print(max_ub)
 intercept = max_ub
 </code></pre>
 <p>This value will be useful for creating our final signal. Because we are reducing the function of a metabolic reaction rather than growth rate, we will also change the linear relationship; the flux through <code>PFK</code> can be negative, so we will use the <code>linear</code> function_relationship rather than <code>bounded_linear</code>:</p>
 <pre><code>slope = -1000 # this is a fairly arbitrary relationship for the slope between acetaldehyde concentration and flux through PFK
-m.add_signal(PFK_num, acald_exch_id, "ub", "linear", [slope, max_ub])
+E.add_signal(PFK_num, acald_exch_id, "ub", "linear", [slope, max_ub])
 </code></pre>
 <p>Here, we have defined a signal such that the maximum flux through PFK <code>max_ub</code> will reduce linearly with a slope of -1000 as the concentration of acetaldehyde increases. We can run our simulations in a couple of ways. First, as before, we will observe the consequences of a constant concentration of extracellular signaling compound.</p>
-<pre><code>l = c.layout(m)
-l.set_specific_metabolite("glc__D_e", 5.)
-l.set_specific_metabolite("nh4_e", 1000.)
-l.set_specific_metabolite("pi_e", 1000.)
-l.set_specific_metabolite("acald_e", 0.25)
+<pre><code>layout = c.layout(E)
+layout.set_specific_metabolite("glc__D_e", 5.)
+layout.set_specific_metabolite("nh4_e", 1000.)
+layout.set_specific_metabolite("pi_e", 1000.)
+layout.set_specific_metabolite("acald_e", 0.25)
 </code></pre>
 <p>Using this approach, our signaling compound is present in the media at an initial concentration that will be reduced over simulation time as it is taken up by <em>E. coli</em>. </p>
 <p>We may also be interested in a signaling compound that is added dynamically, whether to replicate pulses by a producer or another scenario. The simplest way to do this is by using several available tools in COMETS, one of which is the ability to "refresh" compounds, adding a certain mmol of compound per spatial box per hour. </p>
-<pre><code>l.set_specific_metabolite("acald_e", 0.) # reset
-l.set_specific_refresh("acald_e", 0.25)
+<pre><code>layout.set_specific_metabolite("acald_e", 0.) # reset
+layout. set_specific_refresh("acald_e", 0.25)
 </code></pre>
 <h2 id="making-toy-producer-models-using-cobra">Making toy producer models using <code>cobra</code></h2>
 <p>Finally, users may want to make toy models, such as the ones used in our publication. Functionally, these models will not significantly differ from existing models. The basic premise of their construction is identical to the previous examples. Their benefit is that they are more easily manipulated, since every exchange and reaction is chosen and specifically defined by the user. </p>
