@@ -69,9 +69,9 @@ partA <- binomial_models_strep %>%
   geom_bar(stat = "identity", position = position_dodge(0.9)) +
   theme_bw(base_size = 16) +
   xlab("beta sign") +
-  ylab("# of models") +
+  ylab("Models") +
   scale_fill_manual(values = c("grey", "black")) +
-  theme(legend.position = "none", axis.title.x = element_blank())
+  theme(legend.position = "none", axis.title.x = element_blank(), axis.text = element_text(colour="black"))
 
 toxins <- c("RiPP-like", "NRPS", "NRPS-like", "butyrolactone", "cyanobactin",
             "amglyccycl", "blactam", "thiopeptide", "betalactone",
@@ -95,16 +95,17 @@ partB <- binomial_models_strep %>%
                           type == "T2PKS" ~ "type II PKS",
                           type == "amglyccycl" ~ "aminoglycoside",
                           TRUE ~ type)) %>%
-  mutate(type = ifelse(type %in% robust, paste0("***", type, "***"), type)) %>%
+  mutate(type = ifelse(type %in% robust, paste0("**", type, "*"), type)) %>%
   ggplot(aes(x = fct_reorder(type, beta, .desc = TRUE), y = beta, color = toxin)) +
   geom_point(size = 4) +
   geom_linerange(aes(ymax = upperci, ymin = lowerci)) +
   coord_flip() +
   theme_bw(base_size = 16) +
   geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
-  ylab("beta") +
+  ylab(expression(beta)) +
   scale_color_manual(values = c("black", "#E69F00")) +
-  theme(legend.position = "none", axis.title.y = element_blank(), axis.text = element_markdown())
+  theme(legend.position = "bottom", axis.text = element_markdown(colour="black"), axis.title.y = element_blank(),
+        legend.key.size = unit(0.005, "cm"))
 
 # part C
 pos_bcgs_strep <- c("type II PKS", "NRPS", "melanin", "RiPP-like")
@@ -119,10 +120,10 @@ partC <- strep %>% dplyr::select(species_id, predicted_d) %>% unique() %>%
   geom_point(shape = 1) +
   facet_wrap(~factor(type, levels = pos_bcgs_strep), ncol = 6) +
   theme_bw(base_size = 16) +
-  xlab("growth rate") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
   ylab("BGC presence") +
   scale_x_continuous(breaks = c(0, 0.5, 1))+
-  geom_smooth(method = "glm", method.args = list(family = "binomial"))
+  geom_smooth(method = "glm", method.args = list(family = "binomial")) + theme(axis.text = element_markdown(colour="black"))
 
 # part D
 neg_bcgs_strep <- c("homoserine lactone", "RRE-containing", "arylpolyene", "indole")
@@ -137,16 +138,16 @@ partD <- strep %>% dplyr::select(species_id, predicted_d) %>% unique() %>%
   geom_point(shape = 1) +
   facet_wrap(~factor(type, levels = neg_bcgs_strep), ncol = 6) +
   theme_bw(base_size = 16) +
-  xlab("growth rate") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
   ylab("BGC presence") +
   scale_x_continuous(breaks = c(0, 0.5, 1))+
-  geom_smooth(method = "glm", method.args = list(family = "binomial"))
+  geom_smooth(method = "glm", method.args = list(family = "binomial")) + theme (axis.text = element_markdown(colour="black"))
 
 
 #final figure
 figure5 <- plot_grid(plot_grid(partA, partB, ncol = 2, labels = c("A", "B"), label_size = 26, rel_widths = c(0.6,1)), 
                      partC, partD, ncol = 1, labels = c("", "C", "D"), label_size = 26, rel_heights = c(1, 0.5, 0.5))
 
-png(here::here("figures", "final-figs", "imgs", "figure-5.png"), res = 300, width = 3000, height = 3000)
+png(here::here("figures", "final-figs", "imgs", "figure-5.png"), res = 300, width = 3000, height = 3500)
 figure5
 dev.off()

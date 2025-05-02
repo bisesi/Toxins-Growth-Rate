@@ -10,6 +10,8 @@ Second, users should download and install [Gurobi](https://www.gurobi.com/downlo
 
 If COMETS is struggling to connect to Gurobi, users can begin the troubleshooting process by making sure the `GUROBI_HOME` environment variable is set. How exactly this is done will depend on the operating system of the user's computer. More information can be found on the [COMETS website](https://www.runcomets.org/home).
 
+COMETS is now also compatible with GLOP (the Google Linear Optimization Package), which can be installed using `pip install ortools`. 
+
 ## Installation of the COMETS software
 
 COMETS can be installed in two ways: using the COMETS installer or by unpacking the .tar.gz file. The installer is available [here](https://www.runcomets.org/installation). Installation for Windows, MacOS, and Linux systems are all available. The installer will guide users through a standard GUI installation procedure.

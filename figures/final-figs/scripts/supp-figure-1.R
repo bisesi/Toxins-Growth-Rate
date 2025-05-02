@@ -17,39 +17,49 @@ partA <- rocha %>%
   mutate(pred_rate = log(2) / predicted_d, exp_rate = log(2) / d_h) %>%
   ggplot(aes(x = exp_rate, y = pred_rate)) + 
   geom_point() + geom_abline(slope = 1, linetype = "dashed", color = "red") +
-  ylab("predicted growth rate") +
+  ylab(expression(paste("Predicted growth rate (", hr^{-1}, ")"))) +
   geom_smooth(method = "lm") +
   scale_x_continuous(limits = c(0, NA)) +
-  xlab("observed growth rate") +
+  xlab(expression(paste("Observed growth rate (", hr^{-1}, ")"))) +
   theme_bw(base_size = 16)
 
-# rocha experimental scatterplot under 5
+# rocha experimental scatterplot
 partB <- rocha %>% 
-  filter(predicted_d < 5 & d_h < 5) %>%
-  unique() %>% 
   mutate(pred_rate = log(2) / predicted_d, exp_rate = log(2) / d_h) %>%
-  ggplot(aes(x = exp_rate, y = pred_rate)) + 
-  geom_point() + geom_abline(slope = 1, linetype = "dashed", color = "red") +
-  ylab("predicted growth rate") +
-  geom_smooth(method = "lm") +
-  scale_x_continuous(limits = c(0, NA)) +
-  xlab("observed growth rate") +
-  theme_bw(base_size = 16)
+  mutate(direction = case_when(round(pred_rate, 2) > round(exp_rate, 2) ~ "overestimate",
+                               round(pred_rate, 2) < round(exp_rate, 2) ~ "underestimate", 
+                               round(pred_rate, 2) == round(exp_rate, 2) ~ "accurate")) %>%
+  select(pred_rate, exp_rate, species_id, direction) %>% unique() %>%
+  group_by(direction) %>% summarize(n = n()) %>%
+  ggplot(aes(x = direction, y = n)) + 
+  geom_bar(stat = "identity") +
+  ylab("Genomes") +
+  theme_bw(base_size = 16) + theme(axis.title.x = element_blank())
+
+# trend 
+partC <- rocha %>% 
+  mutate(pred_rate = log(2) / predicted_d, exp_rate = log(2) / d_h) %>% mutate(fold_diff = log2(pred_rate / exp_rate)) %>% 
+  select(fold_diff, exp_rate, species_id, pred_rate) %>% unique() %>% 
+  ggplot(aes(x = exp_rate, y = fold_diff)) + geom_point() +
+  ylab(expression(paste("Log2(pred / obs growth rate(", hr^{-1}, "))"))) +
+  xlab(expression(paste("Observed growth rate (", hr^{-1}, ")"))) +
+  theme_bw(base_size = 16) + geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
+  geom_vline(xintercept = 0.14, color = "red", linetype = "dashed")
 
 # rocha experimentally determined vs predict
-partC <- rocha %>%
+partD <- rocha %>%
   dplyr::select(species_id, predicted_d) %>% unique() %>%
   mutate(pred_rate = log(2) / predicted_d) %>%
   ggplot(aes(pred_rate)) + 
   geom_histogram() +
-  ylab("# of genomes") +
-  xlab("predicted growth rate") +
+  ylab("Genomes") +
+  xlab(expression(paste("Predicted growth rate (", hr^{-1}, ")"))) +
   theme_bw(base_size = 16)
 
 #final figure
-suppfig1 <- plot_grid(partA, partB, partC, ncol = 3, labels = c("A", "B", "C"), label_size = 26)
+suppfig1 <- plot_grid(partA, partB, partC, partD, ncol = 2, labels = c("A", "B", "C", "D"), label_size = 26)
 
-png(here::here("figures", "final-figs", "imgs", "supp-figure-1.png"), res = 300, width = 3000, height = 1250)
+png(here::here("figures", "final-figs", "imgs", "supp-figure-1.png"), res = 300, width = 3000, height = 3000)
 suppfig1
 dev.off()
 

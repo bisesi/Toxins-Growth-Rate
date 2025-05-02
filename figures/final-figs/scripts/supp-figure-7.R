@@ -64,9 +64,9 @@ partA <- subset %>% dplyr::select(genome, proteinID) %>% group_by(genome) %>% su
   ggplot(aes(n)) +
   geom_histogram() +
   scale_x_continuous(limits = c(0, NA)) +
-  ylab("# of genomes") +
+  ylab("Genomes") +
   labs(fill = "")+
-  xlab("# of toxin genes per genome") +
+  xlab("Toxin genes per genome") +
   theme_bw(base_size = 16)
 
 # clusters/toxins per genome histogram
@@ -75,9 +75,9 @@ partB <- subset %>% dplyr::select(genome, pfamID) %>% unique() %>% group_by(geno
   ggplot(aes(n)) +
   geom_histogram() +
   scale_x_continuous(limits = c(0, NA)) +
-  ylab("# of genomes") +
+  ylab("Genomes") +
   labs(fill = "")+
-  xlab("# of unique toxin types per genome") +
+  xlab("Unique toxin types per genome") +
   theme_bw(base_size = 16)
 
 # growth rate histogram
@@ -87,8 +87,8 @@ partC <- subset %>% filter(!genome %in% outliers) %>%
   mutate(rate = log(2) / predicted_d) %>% unique() %>%
   ggplot(aes(rate)) +
   geom_histogram() +
-  ylab("# of genomes") +
-  xlab("growth rate") +
+  ylab("Genomes") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
   theme_bw(base_size = 16)
 
 # correlation with number of toxin genes 
@@ -97,7 +97,7 @@ d_vs_numbertoxgenes <- subset %>% filter(!genome %in% outliers) %>%
   summarize(n = n()) %>%
   ungroup() %>% mutate(rate = log(2) / predicted_d)
 
-bootstrap_total = do(10000)*glm(n ~ rate, family = "poisson", data=mosaic::resample(d_vs_numbertoxgenes))
+bootstrap_total = do(1000)*glm(n ~ rate, family = "poisson", data=mosaic::resample(d_vs_numbertoxgenes))
 lower_total <- confint(bootstrap_total, level = 0.95)[2,2]
 upper_total <- confint(bootstrap_total, level = 0.95)[2,3]
 est_total <- coef(glm(n ~ rate, family = "poisson", data = d_vs_numbertoxgenes))[2]
@@ -109,8 +109,8 @@ partD <- d_vs_numbertoxgenes %>%
   ggplot(aes(x = rate, y = n)) +
   geom_point(shape = 1) +
   geom_smooth(method = "glm", method.args = list(family = "poisson")) +
-  ylab("# of toxin genes") +
-  xlab("growth rate") +
+  ylab("Toxin genes") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
   theme_bw(base_size = 16) +
   annotate("text", label = paste0("beta: ", round(total$estimates[3], 3), sig, " [", round(total$estimates[1], 3), " , ", round(total$estimates[2], 3), "]"), x = 2, y = 60)
 
@@ -120,7 +120,7 @@ d_vs_numbertoxgenes_perproduct <- subset %>% filter(!genome %in% outliers) %>%
   summarize(n = n()) %>%
   ungroup() %>% mutate(rate = log(2) / predicted_d)
 
-bootstrap_unique = do(10000)*glm(n ~ rate, family = "poisson", data=mosaic::resample(d_vs_numbertoxgenes_perproduct))
+bootstrap_unique = do(1000)*glm(n ~ rate, family = "poisson", data=mosaic::resample(d_vs_numbertoxgenes_perproduct))
 lower_unique <- confint(bootstrap_unique, level = 0.95)[2,2]
 upper_unique <- confint(bootstrap_unique, level = 0.95)[2,3]
 est_unique <- coef(glm(n ~ rate, family = "poisson", data = d_vs_numbertoxgenes_perproduct))[2]
@@ -132,8 +132,8 @@ partE <- d_vs_numbertoxgenes_perproduct %>%
   ggplot(aes(x = rate, y = n)) +
   geom_point(shape = 1) +
   geom_smooth(method = "glm", method.args = list(family = "poisson")) +
-  ylab("# of unique toxin types") +
-  xlab("growth rate") +
+  ylab("Unique toxin types") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
   theme_bw(base_size = 16) +
   annotate("text", label = paste0("beta: ", round(unique$estimates[3], 3), sig, " [", round(unique$estimates[1], 3), " , ", round(unique$estimates[2], 3), "]"), x = 2, y = 60)
 
@@ -176,7 +176,7 @@ partF <- binomial_models_levy %>%
   geom_bar(stat = "identity", position = position_dodge(0.9)) +
   theme_bw(base_size = 16) +
   xlab("beta sign") +
-  ylab("# of models") +
+  ylab("Models") +
   scale_fill_manual(values = c("grey", "black")) +
   theme(legend.position = "none", axis.title.x = element_blank())
 

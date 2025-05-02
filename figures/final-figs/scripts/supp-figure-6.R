@@ -25,9 +25,9 @@ partA <- island_dataset %>% group_by(genome) %>% summarize(n = n()) %>%
   ggplot(aes(n)) +
   geom_histogram(binwidth = 1) +
   scale_x_continuous(limits = c(0, NA)) +
-  ylab("# of genomes") +
+  ylab("Genomes") +
   labs(fill = "")+
-  xlab("# of toxin islands per genome") +
+  xlab("Toxin islands per genome") +
   theme_bw(base_size = 16) # max 8, min 1, mean 1.71, median 2
 
 # total number of toxin genes per genome in 
@@ -35,9 +35,9 @@ partB <- island_dataset %>% filter(!genome %in% outliers) %>% group_by(genome) %
   ggplot(aes(total)) +
   geom_histogram() +
   scale_x_continuous(limits = c(0, NA)) +
-  ylab("# of genomes") +
+  ylab("Genomes") +
   labs(fill = "")+
-  xlab("# of island-associated toxin genes per genome") +
+  xlab("Island-associated toxin genes per genome") +
   theme_bw(base_size = 16) # mean 9.68, median 7, min 0, max 46
 
 # growth rate histogram
@@ -47,8 +47,8 @@ partC <- island_dataset %>% filter(!genome %in% outliers) %>%
   mutate(rate = log(2) / predicted_d) %>%
   ggplot(aes(rate)) +
   geom_histogram() +
-  ylab("# of genomes") +
-  xlab("growth rate") +
+  ylab("Genomes") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
   theme_bw(base_size = 16) # mean 0.55, min 0.02, max 4.3, median 0.38
 
 # correlation with number of toxin genes 
@@ -57,7 +57,7 @@ num_islands <- island_dataset %>% filter(!genome %in% outliers) %>%
   summarize(n = n()) %>%
   ungroup() %>% mutate(rate = log(2) / predicted_d)
 
-bootstrap_total = do(10000)*glm(n ~ rate, family = "poisson", data=mosaic::resample(num_islands))
+bootstrap_total = do(1000)*glm(n ~ rate, family = "poisson", data=mosaic::resample(num_islands))
 lower_total <- confint(bootstrap_total, level = 0.95)[2,2]
 upper_total <- confint(bootstrap_total, level = 0.95)[2,3]
 est_total <- coef(glm(n ~ rate, family = "poisson", data = num_islands))[2]
@@ -69,8 +69,8 @@ partD <- num_islands %>%
   ggplot(aes(x = rate, y = n)) +
   geom_point(shape = 1) +
   geom_smooth(method = "glm", method.args = list(family = "poisson")) +
-  ylab("# of toxin islands") +
-  xlab("growth rate") +
+  ylab("Toxin islands") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
   theme_bw(base_size = 16) +
   annotate("text", label = paste0("beta: ", round(total$estimates[3], 3), sig, " [", round(total$estimates[1], 3), " , ", round(total$estimates[2], 3), "]"), x = 2, y = 7)
 
@@ -79,7 +79,7 @@ genes_in_all_islands <- island_dataset %>% filter(!genome %in% outliers) %>% sel
   group_by(genome) %>% mutate(total = sum(num_of_tox)) %>%
   ungroup() %>% mutate(rate = log(2) / predicted_d)
 
-bootstrap_unique = do(10000)*glm(total ~ rate, family = "poisson", data=mosaic::resample(genes_in_all_islands))
+bootstrap_unique = do(1000)*glm(total ~ rate, family = "poisson", data=mosaic::resample(genes_in_all_islands))
 lower_unique <- confint(bootstrap_unique, level = 0.95)[2,2]
 upper_unique <- confint(bootstrap_unique, level = 0.95)[2,3]
 est_unique <- coef(glm(total ~ rate, family = "poisson", data = genes_in_all_islands))[2]
@@ -91,8 +91,8 @@ partE <- genes_in_all_islands %>%
   ggplot(aes(x = rate, y = total)) +
   geom_point(shape = 1) +
   geom_smooth(method = "glm", method.args = list(family = "poisson")) +
-  ylab("# of island-associated toxin genes") +
-  xlab("growth rate") +
+  ylab("Island-associated toxin genes") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
   theme_bw(base_size = 16)+
   annotate("text", label = paste0("beta: ", round(unique$estimates[3], 3), sig, " [", round(unique$estimates[1], 3), " , ", round(unique$estimates[2], 3), "]"), x = 2, y = 30)
 
@@ -134,7 +134,7 @@ partF <- binomial_models_levy %>%
   geom_bar(stat = "identity", position = position_dodge(0.9)) +
   theme_bw(base_size = 16) +
   xlab("beta sign") +
-  ylab("# of models") +
+  ylab("Models") +
   scale_fill_manual(values = c("grey", "black")) +
   theme(legend.position = "none", axis.title.x = element_blank())
 

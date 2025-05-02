@@ -52,9 +52,9 @@ partA <- binomial_models_rocha %>%
   geom_bar(stat = "identity", position = position_dodge(0.9)) +
   theme_bw(base_size = 16) +
   xlab("beta sign") +
-  ylab("# of models") +
+  ylab("Models") +
   scale_fill_manual(values = c("grey", "black")) +
-  theme(legend.position = "none", axis.title.x = element_blank())
+  theme(legend.position = "none", axis.title.x = element_blank(), axis.text = element_text(colour="black"))
 
 # part B
 partB <- binomial_models_rocha %>%
@@ -67,8 +67,8 @@ partB <- binomial_models_rocha %>%
   theme_bw(base_size = 16) +
   scale_color_manual(values = c("black", "#E69F00")) +
   geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
-  ylab("beta") +
-  theme(legend.position = "none", axis.title.y = element_blank())
+  ylab(expression(beta)) +
+  theme(legend.position = "bottom", axis.title.y = element_blank(), legend.key.size = unit(0.05, "cm"), axis.text = element_text(colour="black"))
 
 # part C
 sig_bcgs_rocha <- binomial_models_rocha %>%
@@ -83,15 +83,15 @@ partC <- rocha %>% dplyr::select(species_id, d_h) %>% unique() %>%
   geom_point(shape = 1) +
   facet_wrap(~factor(type, levels = sig_bcgs_rocha), ncol = 5) +
   theme_bw(base_size = 16) +
-  xlab("log10-transformed growth rate") +
+  xlab(expression(paste("Log10-transformed growth rate (", hr^{-1}, ")"))) +
   ylab("BGC presence") +
-  geom_smooth(method = "glm", method.args = list(family = "binomial"))
+  geom_smooth(method = "glm", method.args = list(family = "binomial")) + theme(axis.text = element_text(colour="black"))
 
 #final figure
-figure5 <- plot_grid(plot_grid(partA, partB, ncol = 2, labels = c("A", "B"), label_size = 26, rel_widths = c(0.8,1)), 
+figure4 <- plot_grid(plot_grid(partA, partB, ncol = 2, labels = c("A", "B"), label_size = 26, rel_widths = c(0.8,1)), 
                      partC, ncol = 1, labels = c("", "C"), label_size = 26)
 
-png(here::here("figures", "final-figs", "imgs", "figure-4.png"), res = 300, width = 3000, height = 1500)
+png(here::here("figures", "final-figs", "imgs", "figure-4.png"), res = 300, width = 3000, height = 2500)
 figure4
 dev.off()
 

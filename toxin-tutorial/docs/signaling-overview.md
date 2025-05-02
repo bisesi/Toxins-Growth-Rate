@@ -21,7 +21,7 @@ The biological significance of these parameters is:
 
 * `altered_reaction_id`: The numeric ID of the metabolic reaction whose bounds will be altered by the uptake of the signaling compound. If modifying the maximum growth rate, the biomass growth objective should be used. When modeling -cidal toxins, the argument `'death'` can be used instead.
 * `metabolite_id`: The index of the exchange reaction for the signaling metabolite. Models sense the external environment based on exchange reactions, which is why a reaction is specified rather than a metabolite. This value should therefore be numeric and correspond to the `EXCH_IND` of the appropriate metabolite.
-* `altered_bound`: The reaction bound that is impacted by uptake of the signaling compound, either `'ub'` (upper bound) or `'lb'` (lower bound). Generally when modeling toxins that impact growth rate, `ub` should be used, although `lb` may be appropriate if users are interested in using a signaling compound to upregulate some metabolite process.
+* `altered_bound`: The reaction bound that is impacted by uptake of the signaling compound, either `'ub'` (upper bound) or `'lb'` (lower bound). Generally when modeling toxins that impact growth rate, `ub` should be used, although `lb` may be appropriate in many cases depending on the identity of the reaction impacted by toxin production.
 * `functional_relationship`: The signal-response curve detailing the shape of the functional relationship between the signaling compound concentration and the altered reaction bound. Three options are available: `'linear'`, `'bounded_linear'`, and `'generalized_logistic'`. `linear` and `bounded_linear` will model a fixed effect. The choice of functional relationship will determine the length and identities of the list of inputs to the final argument, `parms`.
 * `parms`: The parameters for the functional relationship between signaling compound concentration and the reaction bound. The number of parameters and their meaning will vary based on the functional relationship chosen. The appropriate parameters should be included as a list, as indicated by the brackets.
 
@@ -31,7 +31,7 @@ One essential decision when designing simulations with signaling compounds is th
 
 If the functional relationship `linear` is chosen, two parameters are necessary for the `parms` argument, such that `parms = [slope, bound = 0]`:
 
-* `slope`: The slope of the linear relationship between the concentration of the signaling compound and the bound of the altered reaction.
+* `slope`: The slope of the linear relationship between the concentration of the signaling compound (independent variable) and the bound of the altered reaction (dependent variable).
 * `bound`: The maximum (or minimum, if using `lb`) amount of flux that the altered reaction (`altered_reaction_id`) can carry in the absence of toxin or signaling compound. When this parameter is not provided, it takes a default value of 0. 
 
 If the functional relationship `bounded_linear` is chosen, four parameters are necessary for the `parms` argument, such that `parms = [baseline_value, conc_where_effect_starts, slope, conc_where_effect_saturates]`:
@@ -50,11 +50,11 @@ If the functional relationship `generalized_logistic` is chosen, four parameters
 
 The parameters `C`, `Q` and `v` all take default value of 1, which should cover most use-cases of the generalized logistic function for signaling purposes. Unless users have a clear understanding of the dose-response curve they are interested in modeling and a strong rationale for setting these parameters themselves, it is advisable to only provide `left_asym`, `right_asym`, `growth_rate` and `starting_dose` parameters and use the default values for the remaining three. 
 
-Note that the `bounded_linear` relationship is preferable over `linear` when users would like to prevent a reaction like biomass from becoming negative as a result of toxin. `generalized_logistic` will generally provide the most biologically-realistic relationship between model reactions and signaling compound concentrations, although there are many situations in which `bounded_linear` and `generalized_logistic` will not provide qualitatively divergent results. 
+Note that the `bounded_linear` relationship is preferable over `linear` when users would like to prevent a reaction like biomass from becoming negative as a result of toxin. `generalized_logistic` will generally provide the most biologically-realistic relationship between model reactions and signaling compound concentrations. 
 
 ## Implementing multitoxins
 
-Finally, users may chose a special case of signaling with `add_multitoxin`. The function adds a signaling relationship for multiple toxins, relying on a Hill-function reduction of (typically) the upper bound of a reaction. Users will find this function most useful when considering multiple, additively-functioning signals. The function arguments are very similar to the `add_signal` function, though multiple exchange IDs, along with compound-associated Km values and Hill coefficients, are required. 
+Finally, users may choose a special case of signaling with `add_multitoxin`. The function adds a signaling relationship for multiple toxins, relying on a Hill-function reduction of (typically) the upper bound of a reaction. Users will find this function most useful when considering multiple, additively-functioning signals. The function arguments are very similar to the `add_signal` function, though multiple exchange IDs, along with compound-associated Km values and Hill coefficients, are required. 
 
     model.add_multitoxin(altered_reaction_id, [exch_ids], bound, vmax, [kms], [hills])
 
@@ -76,4 +76,4 @@ There are several important modeling limitations to consider when setting up sig
 * If users set up multiple signals to act on a single reaction without using the `add_multitoxin` function, the signal that was added last will override any signals previously added. The only exception to this is if two different signals affect different bounds on the same reaction.
 * It is not advisable to set signals to affect exchange reactions. COMETS uses the bounds on exchange reactions for a variety of purposes, so changing their bounds is not a good idea. Instead, users can change *transport* reactions if they want to influence uptake using a signal.
 * In order to be affected by a signal, a model must have an exchange reaction associated with that metabolite. It may need to be added to the model beforehand, but it is not necessary for the exchange reaction to be connected to any internal stoichiometry.
-* COMETS uses Euler integration for signaled effects and death. This means simulation results will be sensitive to the timestep used. Users are advised in later portions of this tutorial to test how reducing the timestep influence the stability of the modeling results.
+* COMETS uses Euler integration for signaled effects and death. This means simulation results will be sensitive to the timestep used. Users are advised in later portions of this tutorial to test how reducing the timestep influences the stability of the modeling results.

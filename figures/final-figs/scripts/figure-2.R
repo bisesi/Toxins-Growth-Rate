@@ -37,8 +37,8 @@ partA1 <- coeff %>%
   filter(growth_rate %in% c(0.125, 1)) %>%
   filter(toxin_coeff %in% c(1, 15, 30, 50, 75)) %>%
   ggplot(aes(x = as.factor(growth_rate), y = as.factor(toxin_coeff), fill = mean)) +
-  xlab("growth rate") +
-  ylab("mmol toxin / gram biomass") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
+  ylab("Toxin mmol / gram biomass") +
   geom_tile() +
   scale_fill_gradient2(low = "#AA4499",
                        mid = "white",
@@ -47,7 +47,8 @@ partA1 <- coeff %>%
   facet_wrap(~fitness_type) +
   theme_bw(base_size = 16) + 
   theme(legend.position = "none", strip.background = element_blank(),
-        axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank(), axis.title.x = element_blank())
+        axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank(), 
+        axis.title.x = element_blank(), axis.text = element_text(colour="black"))
 
 partA2 <- coeff %>%
   pivot_longer(cols = c(mean_fitness:se_pop), names_to = "name") %>%
@@ -60,8 +61,8 @@ partA2 <- coeff %>%
   filter(growth_rate %in% c(0.125, 1)) %>%
   filter(toxin_coeff %in% c(1, 15, 30, 50, 75)) %>%
   ggplot(aes(x = as.factor(growth_rate), y = as.factor(toxin_coeff), fill = mean)) +
-  xlab("growth rate") +
-  ylab("mmol toxin / gram biomass") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
+  ylab("Toxin mmol / gram biomass") +
   geom_tile() +
   scale_fill_gradient2(low = "#AA4499",
                        mid = "white",
@@ -69,10 +70,10 @@ partA2 <- coeff %>%
                        midpoint = 0.1)+
   facet_wrap(~fitness_type) +
   theme_bw(base_size = 16) + 
-  theme(legend.position = "none", strip.background = element_blank(), axis.title.x = element_blank())
+  theme(legend.position = "none", strip.background = element_blank(), axis.title.x = element_blank(), axis.text = element_text(colour="black"))
 
 partA <- plot_grid(partA2, partA1, ncol = 2, rel_widths = c(1, 0.75))
-partA_labeled <- ggdraw(add_sub(partA, "growth rate", vpadding=grid::unit(0,"lines"),y=5, x=0.55, vjust=4.5, size = 16))
+partA_labeled <- ggdraw(add_sub(partA, expression(paste("Growth rate (", hr^{-1}, ")")), vpadding=grid::unit(0,"lines"),y=5, x=0.55, vjust=4.5, size = 16))
 
 # part B - toxin diffusion rate
 biomass <- get_colony_biomass(here::here("toxin-simulations", "simulations_spatial", "figure2", "total_biomass_figure2_diff.csv"), toxin_diff)
@@ -101,8 +102,8 @@ partB1 <- diff %>%
   filter(growth_rate %in% c(0.125, 1)) %>%
   filter(toxin_diff %in% c(5e-8, 5e-7, 5e-6, 2.5e-5, 5e-5)) %>%
   ggplot(aes(x = as.factor(growth_rate), y = as.factor(toxin_diff / 5e-6), fill = mean)) +
-  xlab("growth rate") +
-  ylab("toxin / metabolite diffusion rate") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
+  ylab("Toxin / metabolite diffusion rate") +
   geom_tile() +
   scale_fill_gradient2(low = "#AA4499",
                        mid = "white",
@@ -111,7 +112,8 @@ partB1 <- diff %>%
   facet_wrap(~fitness_type) +
   theme_bw(base_size = 16) + 
   theme(legend.position = "none", strip.background = element_blank(),
-        axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank(), axis.title.x = element_blank())
+        axis.title.y = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(), axis.title.x = element_blank(), axis.text = element_text(colour="black"))
 
 partB2 <- diff %>%
   pivot_longer(cols = c(mean_fitness:se_pop), names_to = "name") %>%
@@ -121,8 +123,8 @@ partB2 <- diff %>%
   filter(growth_rate %in% c(0.125, 1)) %>%
   filter(toxin_diff %in% c(5e-8, 5e-7, 5e-6, 2.5e-5, 5e-5)) %>%
   ggplot(aes(x = as.factor(growth_rate), y = as.factor(toxin_diff / 5e-6), fill = value)) +
-  xlab("growth rate") +
-  ylab("toxin / metabolite diffusion rate") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
+  ylab("Toxin / metabolite diffusion rate") +
   geom_tile() +
   scale_fill_gradient2(low = "#AA4499",
                        mid = "white",
@@ -130,10 +132,10 @@ partB2 <- diff %>%
                        midpoint = 0.1)+
   facet_wrap(~fitness_type) +
   theme_bw(base_size = 16) + 
-  theme(legend.position = "none", strip.background = element_blank(), axis.title.x = element_blank())
+  theme(legend.position = "none", strip.background = element_blank(), axis.title.x = element_blank(), axis.text = element_text(colour="black"))
 
 partB <- plot_grid(partB2, partB1, ncol = 2, rel_widths = c(1, 0.75))
-partB_labeled <- ggdraw(add_sub(partB, "growth rate", vpadding=grid::unit(0,"lines"),y=5, x=0.55, vjust=4.5, size = 16))
+partB_labeled <- ggdraw(add_sub(partB, expression(paste("Growth rate (", hr^{-1}, ")")), vpadding=grid::unit(0,"lines"),y=5, x=0.55, vjust=4.5, size = 16))
 
 # part C - density
 biomass <- read_csv(here::here("toxin-simulations", "simulations_spatial", "figure2", "total_biomass_figure2_density.csv"))
@@ -162,8 +164,8 @@ partC1 <- density %>%
   filter(growth_rate %in% c(0.125, 1)) %>%
   filter(density %in% c(1, 3, 5, 7, 9)) %>%
   ggplot(aes(x = as.factor(growth_rate), y = as.factor(density * 10), fill = mean)) +
-  xlab("growth rate") +
-  ylab("number of initial colonies") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
+  ylab("Initial colonies") +
   geom_tile() +
   scale_fill_gradient2(low = "#AA4499",
                        mid = "white",
@@ -172,7 +174,8 @@ partC1 <- density %>%
   facet_wrap(~fitness_type) +
   theme_bw(base_size = 16) + 
   theme(legend.position = "none", strip.background = element_blank(),
-        axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank(), axis.title.x = element_blank())
+        axis.title.y = element_blank(), axis.text.y = element_blank(), axis.text = element_text(colour="black"),
+        axis.ticks.y = element_blank(), axis.title.x = element_blank())
 
 partC2 <- density %>%
   pivot_longer(cols = c(mean_fitness:se_pop), names_to = "name") %>%
@@ -182,8 +185,8 @@ partC2 <- density %>%
   filter(growth_rate %in% c(0.125, 1)) %>%
   filter(density %in% c(1, 3, 5, 7, 9)) %>%
   ggplot(aes(x = as.factor(growth_rate), y = as.factor(density * 10), fill = value)) +
-  xlab("growth rate") +
-  ylab("number of initial colonies") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
+  ylab("Initial colonies") +
   geom_tile() +
   scale_fill_gradient2(low = "#AA4499",
                        mid = "white",
@@ -191,10 +194,10 @@ partC2 <- density %>%
                        midpoint = 0.1)+
   facet_wrap(~fitness_type) +
   theme_bw(base_size = 16) + 
-  theme(legend.position = "none", strip.background = element_blank(), axis.title.x = element_blank())
+  theme(legend.position = "none", strip.background = element_blank(), axis.text = element_text(colour="black"), axis.title.x = element_blank())
 
 partC <- plot_grid(partC2, partC1, ncol = 2, rel_widths = c(1, 0.75))
-partC_labeled <- ggdraw(add_sub(partC, "growth rate", vpadding=grid::unit(0,"lines"),y=5, x=0.55, vjust=4.5, size = 16))
+partC_labeled <- ggdraw(add_sub(partC, expression(paste("Growth rate (", hr^{-1}, ")")), vpadding=grid::unit(0,"lines"),y=5, x=0.55, vjust=4.5, size = 16))
 
 #part D - resistant frequency fitness
 biomass <- read_csv(here::here("toxin-simulations", "for_reviewers", "total_biomass_low_ratio.csv"))
@@ -240,8 +243,8 @@ partD1 <- rbind(low_ratio, ratio) %>%
   filter(growth_rate %in% c(0.125, 1)) %>%
   filter(prod_ratio %in% c(0.1, 0.2, 0.3, 0.4, 0.06, 0.02)) %>%
   ggplot(aes(x = as.factor(growth_rate), y = as.factor(1 - 2*prod_ratio), fill = mean)) +
-  xlab("growth rate") +
-  ylab("starting susceptible frequency") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
+  ylab("Starting susceptible frequency") +
   geom_tile() +
   scale_fill_gradient2(low = "#AA4499",
                        mid = "white",
@@ -250,7 +253,8 @@ partD1 <- rbind(low_ratio, ratio) %>%
   facet_wrap(~fitness_type) +
   theme_bw(base_size = 16) + 
   theme(legend.position = "none", strip.background = element_blank(),
-        axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank(), axis.title.x = element_blank())
+        axis.title.y = element_blank(), axis.text.y = element_blank(), axis.text = element_text(colour="black"),
+        axis.ticks.y = element_blank(), axis.title.x = element_blank())
 
 partD2 <- rbind(low_ratio, ratio) %>%
   pivot_longer(cols = c(mean_fitness:se_pop), names_to = "name") %>%
@@ -261,8 +265,8 @@ partD2 <- rbind(low_ratio, ratio) %>%
   filter(growth_rate %in% c(0.125, 1)) %>%
   filter(prod_ratio %in% c(0.1, 0.2, 0.3, 0.4, 0.06, 0.02)) %>%
   ggplot(aes(x = as.factor(growth_rate), y = as.factor(1 - 2*prod_ratio), fill = intercept)) +
-  xlab("growth rate") +
-  ylab("starting susceptible frequency") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
+  ylab("Starting susceptible frequency") +
   geom_tile() +
   scale_fill_gradient2(low = "#AA4499",
                        mid = "white",
@@ -270,10 +274,10 @@ partD2 <- rbind(low_ratio, ratio) %>%
                        midpoint = 1)+
   facet_wrap(~fitness_type) +
   theme_bw(base_size = 16) + 
-  theme(legend.position = "none", strip.background = element_blank(), axis.title.x = element_blank())
+  theme(legend.position = "none", strip.background = element_blank(), axis.text = element_text(colour="black"), axis.title.x = element_blank())
 
 partD <- plot_grid(partD2, partD1, ncol = 2, rel_widths = c(1, 0.75))
-partD_labeled <- ggdraw(add_sub(partD, "growth rate", vpadding=grid::unit(0,"lines"),y=5, x=0.55, vjust=4.5, size = 16))
+partD_labeled <- ggdraw(add_sub(partD, expression(paste("Growth rate (", hr^{-1}, ")")), vpadding=grid::unit(0,"lines"),y=5, x=0.55, vjust=4.5, size = 16))
 
 # legend
 data <- data.frame(
@@ -289,7 +293,7 @@ legend <- get_plot_component(ggplot(data, aes(x = x, y = y, fill = value)) +
                                  name = "", # Removes the default legend title
                                  labels = c("low\nfitness", "high\nfitness"), # Custom labels
                                  breaks = range(data$value)) +
-                               theme_bw(base_size = 16),
+                               theme_bw(base_size = 16) + theme(axis.text = element_text(colour="black")),
                              'guide-box-right', return_all = TRUE)
 
 #final figure

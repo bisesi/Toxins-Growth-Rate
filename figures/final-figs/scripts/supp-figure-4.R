@@ -17,9 +17,9 @@ partA <- rocha %>% dplyr::select(species_id, type) %>% group_by(species_id) %>% 
   ggplot(aes(n)) +
   geom_histogram() +
   scale_x_continuous(limits = c(0, NA)) +
-  ylab("# of genomes") +
+  ylab("Genomes") +
   labs(fill = "")+
-  xlab("# of clusters per genome") +
+  xlab("Clusters per genome") +
   theme_bw(base_size = 16)
 
 # growth rate histogram
@@ -27,8 +27,8 @@ partB <- rocha %>% dplyr::select(species_id, d_h) %>% unique() %>% mutate(datase
   drop_na() %>%
   ggplot(aes(log(2) / d_h)) +
   geom_histogram() +
-  ylab("# of genomes") +
-  xlab("growth rate") +
+  ylab("Genomes") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
   theme_bw(base_size = 16)
 
 # get bgc presence absence
@@ -72,7 +72,7 @@ partC <- binomial_models_rocha %>%
   geom_bar(stat = "identity", position = position_dodge(0.9)) +
   theme_bw(base_size = 16) +
   xlab("beta sign") +
-  ylab("# of models") +
+  ylab("Models") +
   scale_fill_manual(values = c("grey", "black")) +
   theme(legend.position = "none", axis.title.x = element_blank())
 

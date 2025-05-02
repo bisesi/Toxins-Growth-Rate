@@ -19,7 +19,8 @@ partA_spatial <- locations %>%
   theme_bw(base_size = 16) + 
   scale_color_manual(values = c("producer" = "#004488", "susceptible" = "#DDAA33", "resistant" = "#BB5566")) +
   theme(legend.position = "none", axis.title = element_blank(), axis.text = element_blank(), 
-        strip.background = element_blank(), axis.ticks = element_blank(), strip.text.y = element_blank())
+        strip.background = element_blank(), axis.ticks = element_blank(),
+        strip.text.y = element_blank())
 
 # part B - toxin localization
 media <- read_csv(here::here("toxin-simulations", "simulations_spatial", "figure1", "metabolites_figure1.csv"))
@@ -35,13 +36,14 @@ partB <- metabolite_variation %>%
   summarize(mean_cv = mean(cv), se_cv = sd(cv) / sqrt(15)) %>%
   mutate(metabolite = factor(metabolite, levels = c("colony size", "carbon", "toxin"))) %>%
   filter(metabolite == "toxin") %>%
+  mutate(metabolite = "Toxin concentration") %>%
   ggplot(aes(x = growth_rate, y = mean_cv)) +
   geom_point(size = 3) + 
   theme_bw(base_size = 16) + 
-  ylab("coefficient of variation") +
+  ylab("Coefficient of variation") +
   geom_linerange(aes(ymin = mean_cv - se_cv, ymax = se_cv + mean_cv)) +
-  xlab("growth rate") +
-  theme(legend.position = "none", strip.background = element_blank()) + facet_wrap(~metabolite, scales = "free")
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
+  theme(legend.position = "none", strip.background = element_blank(), axis.text = element_text(colour="black")) + facet_wrap(~metabolite, scales = "free")
 
 # part C - localization metric with producer
 biomass <- get_colony_biomass(here::here("toxin-simulations", "simulations_spatial", "figure1", "total_biomass_figure1.csv"))
@@ -67,21 +69,23 @@ slow_slope <- coef(lm(biomass ~ distance, data = distances_vs_biomass %>% filter
 
 #significance of fast slope = 0.00254, slow slope = 0.45
 partC <- distances_vs_biomass %>% filter(growth_rate %in% c(0.125, 1) & spatial_seed == seed) %>% 
-  mutate(type = "susceptibles") %>%
+  mutate(type = "Susceptible colonies") %>%
   ggplot(aes(x = distance, y = biomass * 1e7, color = as.factor(growth_rate))) +
   geom_point() + theme_bw(base_size = 16) + geom_smooth(method = "lm", se = FALSE) + labs(color = "growth rate") +
   scale_color_manual(values = c("#E69F00", "black")) +
   annotate(geom = "text", x = 35, y = 275, color = "black", size = 5, label = paste("slope:", round(fast_slope, 2))) +
   annotate(geom = "text", x = 43, y = 158, color = "#E69F00", size = 5, label = paste("slope:", round(slow_slope, 2))) +
-  ylab("final scaled biomass") + xlab("mean distance to producer") + theme(legend.position = "none", strip.background = element_blank()) + facet_wrap(~type)
+  ylab("Final scaled biomass") + xlab("Mean distance to producer") + theme(legend.position = "none", axis.text = element_text(colour="black"), 
+                                                                           strip.background = element_blank()) + facet_wrap(~type)
 
 legend <- get_plot_component(distances_vs_biomass %>% filter(growth_rate %in% c(0.125, 1) & spatial_seed == 5) %>% 
                                mutate(type = "susceptibles") %>%
-                               mutate(growth_rate = ifelse(growth_rate == 0.125, "slow", "fast")) %>%
+                               mutate(growth_rate = ifelse(growth_rate == 0.125, "Slow", "Fast")) %>%
                                ggplot(aes(x = distance, y = biomass * 1e5, color = as.factor(growth_rate))) +
                                geom_point(size = 4) + theme_bw(base_size = 16) + 
                                scale_color_manual(values = c("black", "#E69F00")) + labs(color = "")+
-                               ylab("final scaled biomass") + xlab("mean distance to producer") + theme(legend.position = "bottom", strip.background = element_blank()) + facet_wrap(~type),
+                               ylab("final scaled biomass") + xlab("mean distance to producer") + theme(legend.position = "bottom", axis.text = element_text(colour="black"), 
+                                                                                                        strip.background = element_blank()) + facet_wrap(~type),
                                'guide-box-bottom', return_all = TRUE)
 
 # part D - penalty of proximity
@@ -98,13 +102,14 @@ slopes <- distances_vs_biomass %>%
   ungroup() 
 
 partD <- slopes %>% group_by(growth_rate) %>% summarize(mean = mean(estimate), se = sd(estimate) / sqrt(15)) %>%
-  mutate(type = "susceptibles") %>%
+  mutate(type = "Susceptible colonies") %>%
   ggplot(aes(x = growth_rate, y = mean)) +
   geom_point(size = 4) + theme_bw(base_size = 16) + geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
   geom_linerange(aes(ymin = mean - se, ymax = mean + se)) +
   annotate(geom = "text", color = "black", x = 0.75, y = 0.1, label = "better to be far") +
   annotate(geom = "text", color = "black", x = 0.75, y = -0.1, label = "better to be close") +
-  ylab("effect of proximity") + xlab("growth rate") + theme(legend.position = "none", strip.background = element_blank()) + facet_wrap(~type)
+  ylab("Effect of proximity") + xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) + 
+  theme(legend.position = "none", strip.background = element_blank(), axis.text = element_text(colour="black")) + facet_wrap(~type)
 
 # part E - liquid vs spatial
 liquid <- read_csv(here::here("toxin-simulations", "simulations_liquid", "liquid_biomass_file_figure.csv")) %>% 
@@ -143,15 +148,15 @@ partE <- rbind(spatial, liquid) %>%
   pivot_wider(names_from = stat, values_from = value) %>%
   mutate(fitness_type = ifelse(fitness_type == "total pop", "vs all", fitness_type)) %>%
   ggplot(aes(x = growth_rate, y = mean, shape = environment)) +
-  xlab("growth rate") +
-  ylab("producer fraction") +
+  xlab(expression(paste("Growth rate (", hr^{-1}, ")"))) +
+  ylab("Producer fraction") +
   facet_wrap(~fitness_type, ncol = 2, scales = "free") +
   geom_point(size = 4) + 
   scale_shape_manual(values = c(17, 16))+
   theme_bw(base_size = 16) + 
   geom_linerange(aes(ymin = mean - se, ymax = se + mean)) +
   geom_hline(aes(yintercept = intercept), color = "red", linetype = "dashed") +
-  theme(legend.position = "none", strip.background = element_blank())
+  theme(legend.position = "none", axis.text = element_text(colour="black"), strip.background = element_blank())
 
 legend2 <- get_plot_component(rbind(spatial, liquid) %>%
                                 pivot_longer(cols = c(mean_fitness:se_pop), names_to = "name") %>%
@@ -160,6 +165,7 @@ legend2 <- get_plot_component(rbind(spatial, liquid) %>%
                                 mutate(stat = ifelse(name == "se_pop" | name == "se_fitness", "se", "mean")) %>% dplyr::select(-c(name)) %>%
                                 pivot_wider(names_from = stat, values_from = value) %>%
                                 filter(fitness_type == "total pop") %>%
+                                mutate(environment = ifelse(environment == "liquid", "Liquid", "Spatial")) %>%
                                 ggplot(aes(x = growth_rate, y = mean, shape = environment)) +
                                 xlab("growth rate") +
                                 ylab("producer fraction") +
@@ -169,7 +175,7 @@ legend2 <- get_plot_component(rbind(spatial, liquid) %>%
                                 theme_bw(base_size = 16) + labs(shape = "") +
                                 geom_linerange(aes(ymin = mean - se, ymax = se + mean)) +
                                 geom_hline(aes(yintercept = intercept), color = "red", linetype = "dashed") +
-                                theme(legend.position = "bottom", strip.background = element_blank()), 'guide-box-bottom', return_all = TRUE)
+                                theme(legend.position = "bottom", axis.text = element_text(colour="black"), strip.background = element_blank()), 'guide-box-bottom', return_all = TRUE)
 
 #blank space for part A
 partA <- data.frame(x = 1, y = 1) %>% ggplot(aes(x = x, y = y)) +
@@ -181,7 +187,7 @@ top <- plot_grid(partA, partB, ncol = 2, rel_widths = c(1, 0.6), label_size = 26
 bottom <- plot_grid(plot_grid(partC, legend, ncol = 1, rel_heights = c(1,0.1)), partD, plot_grid(partE, legend2, ncol = 1, rel_heights = c(1,0.1)), ncol = 3, rel_widths = c(0.6,0.5,1), label_size = 26, labels = c("C", "D", "E"))
 figure1 <- plot_grid(top, bottom, ncol = 1)
 
-png(here::here("figures", "final-figs", "imgs", "figure-1.png"), res = 300, width = 3500, height = 2000)
+png(here::here("figures", "final-figs", "imgs", "figure-1.png"), res = 300, width = 3500, height = 2100)
 figure1
 dev.off()
 

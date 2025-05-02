@@ -52,7 +52,7 @@ partA <- binomial_models_rocha %>%
   geom_bar(stat = "identity", position = position_dodge(0.9)) +
   theme_bw(base_size = 16) +
   xlab("beta sign") +
-  ylab("# of models") +
+  ylab("Models") +
   scale_fill_manual(values = c("grey", "black")) +
   theme(legend.position = "none", axis.title.x = element_blank())
 
@@ -65,7 +65,7 @@ partB <- binomial_models_rocha %>%
   coord_flip() +
   theme_bw(base_size = 16) +
   geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
-  ylab("beta") +
+  ylab(expression(beta)) +
   theme(legend.position = "none", axis.title.y = element_blank())
 
 # part C
@@ -81,7 +81,7 @@ partC <- rocha %>% dplyr::select(species_id, predicted_d) %>% unique() %>%
   geom_point(shape = 1) +
   facet_wrap(~factor(type, levels = sig_bcgs_rocha), ncol = 4) +
   theme_bw(base_size = 16) +
-  xlab("predicted log10-transformed growth rate") +
+  xlab(expression(paste("Predicted log10-transformed growth rate (", hr^{-1}, ")"))) +
   ylab("BGC presence") +
   geom_smooth(method = "glm", method.args = list(family = "binomial"))
 
@@ -89,7 +89,7 @@ partC <- rocha %>% dplyr::select(species_id, predicted_d) %>% unique() %>%
 suppfig3 <- plot_grid(plot_grid(partA, partB, ncol = 2, labels = c("A", "B"), label_size = 26, rel_widths = c(0.8,1)), 
                       partC, ncol = 1, labels = c("", "C"), label_size = 26)
 
-png(here::here("figures", "final-figs", "imgs", "supp-figure-3.png"), res = 300, width = 3000, height = 1500)
+png(here::here("figures", "final-figs", "imgs", "supp-figure-3.png"), res = 300, width = 3000, height = 1750)
 suppfig3
 dev.off()
 
